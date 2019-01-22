@@ -1,22 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>WaniKani kanji map</title>
+	<title>WaniKani Kanji Map 漢字地図</title>
 	<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
 	<!-- TODO switch between large and small map -->
 
-	<div id="map-area">
-		<!-- TODO map image -->
-		<img id="map" src="img/3573px-3002_Kanji.svg.png">
-
-		<!-- TODO canvas overlay on map -->
-		<canvas id="canvas" height="800" width="800"></canvas>
+	<div id="page1">
+		Enter your WaniKani API v2 token: 
+		<input type="text" name="token" id="input-token">
+		<button onclick="onSubmitButtonClick()">Submit</button>
+		<div id="submit-error"></div>
 	</div>
 
-	<div class="slidecontainer">
-	  <input type="range" min="1" max="100" value="10" class="slider" id="myRange">
+	<div id="page2">
+		<div id="map-area">
+			<!-- TODO map image -->
+			<img id="map" src="img/3573px-3002_Kanji.svg.png">
+
+			<!-- TODO canvas overlay on map -->
+			<canvas id="canvas" height="800" width="800"></canvas>
+		</div>
+
+		<div class="slidecontainer">
+		  <input type="range" min="1" max="100" value="10" class="slider" id="myRange">
+		</div>
+
+		<div>
+			Original image 
+			"<a href="https://commons.wikimedia.org/wiki/File:3002_Kanji.svg">3002 Kanji.svg</a>"
+			by <a href="https://commons.wikimedia.org/wiki/User:Denelson83">Denelson83</a> is
+			licensed under <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en">CC BY-SA 3.0</a>
+		</div>
 	</div>
 
 	<script src="kanji-map.js"></script>

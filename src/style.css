@@ -6,6 +6,14 @@ html, body, div {
 	background-color: lightblue;
 }*/
 
+#submit-error {
+  color: red;
+}
+
+#page2 {
+  display: none;
+}
+
 #map-area {
 	width: 800px;
 	height: 800px;

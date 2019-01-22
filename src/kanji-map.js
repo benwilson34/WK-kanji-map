@@ -11,10 +11,15 @@ canvas.style.top = map.offsetTop;
 const ctx = canvas.getContext('2d');
 
 let kanjiCoords = [];
-getUserKanji("f1513ed8-8f45-4fd6-9d45-1a2486cc65ba");
 
 
 // ===========================================
+
+function onSubmitButtonClick() {
+	$('submit-error').innerHTML = "";
+	let token = $("input-token");
+	getUserKanji(token.value);
+}
 
 function getUserKanji(token) {
 	// const num = 3002;
@@ -28,20 +33,35 @@ function getUserKanji(token) {
 	  		"Authorization": "Bearer " + token
 	  	}
 	  });
-	  const myJson = await response.json(); //extract JSON from the http response
+	  const json = await response.json(); //extract JSON from the http response
 
-		myJson.forEach(i => {
+	  if (!!json.error) return onUserDataFailure(json.error);
+
+		json.forEach(i => {
 			kanjiCoords.push(indexToCoord(i));
 		});
 
-		drawKanjiSquares(.1);
+		onUserDataSuccess();
 	}
 
 	userAction();
 }
 
+function onUserDataSuccess() {
+	// TODO switch virtual pages
+	$('page1').style.display = 'none';
+	$('page2').style.display = 'initial';
+
+	// TODO move drawSquares call down here
+	drawKanjiSquares(.1);
+}
+
+function onUserDataFailure(error) {
+	$('submit-error').innerHTML = error + "";
+}
+
 function indexToCoord(i) {
-	if (i === 3002) return { x: 1, y: 50 };
+	if (i === 3002) return { x: 1, y: 50 }; // literally the only one out of place
 	else {
 		i--;
 		return {
@@ -51,7 +71,7 @@ function indexToCoord(i) {
 	}
 }
 
-// TODO draw square for each point
+// draw square for each point
 function drawKanjiSquares(alpha) {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	kanjiCoords.forEach(square => {
@@ -60,14 +80,13 @@ function drawKanjiSquares(alpha) {
 
 	ctx.fillStyle = "rgba(255, 0, 0, " + alpha + ")";
 	ctx.fill();
-	ctx.stokeStyle = "rgba(0,0,0,.1)";
+	ctx.stokeStyle = "rgba(128,128,128,.1)";
 	ctx.stroke();
 }
 
 function drawSquare(square) {
 	// console.log(JSON.stringify(square));
 	let w = 800; // image width
-	// let offset = 20; // space between blocks
 	let realx = square.x + 2; // offset
 	let realy = square.y + 1; // offset;
 	realx += Math.floor(square.x / 10);
