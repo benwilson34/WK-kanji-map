@@ -4,6 +4,8 @@ const wkidToIndex = JSON.parse(fs.readFileSync(filepath)); // unsafe but w/e
 
 const request = require('request');
 
+const { inspect } = require('util');
+
 
 module.exports.getUserIndices = (req, res) => {
 	console.log("Getting user ids...");
@@ -36,11 +38,13 @@ function getPageOfKanji(req, url, ids, res) {
 			ids.push( wkidToIndex[wkid] );
     });
 
-    console.log(body.pages.next_url);
-    if (!!body.pages.next_url)
-      getPageOfKanji(body.pages.next_url, ids, res);
-    else
+    if (!!body.pages.next_url) {
+      console.log(`Next url: ${body.pages.next_url}`);
+      getPageOfKanji(req, body.pages.next_url, ids, res);
+    } else {
+      console.log(`Done, sending ${ids.length} ids.\n`);
     	res.json(ids);
+    }
   });
 }
 
