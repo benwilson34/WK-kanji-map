@@ -22,6 +22,7 @@ html, body, div {
 #map {
 	width: 800px;
 	height: auto;
+  display: none;
 }
 
 #canvas {
