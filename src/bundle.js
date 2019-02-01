@@ -22360,30 +22360,6 @@ function setup() {
 	map.position = Paper.view.center;
 	map.fitBounds(Paper.view.bounds);
 	group = new Paper.Group(map);
-	// map.scale(0.5);
-	// map.rotate(45);
-
-	// var path = new Path();
-	// path.strokeColor = 'black';
-	// var start = new Paper.Point(100, 100);
-	// path.moveTo(start);
-	// path.lineTo(start.add([ 200, -50 ]));
-	// Paper.view.draw();
-	console.log("Done drawing!");
-
-	// var path = new Path();
-	// pivot = new Path.Circle(Paper.view.center, 10);
-	// pivot.fillColor = 'green';
-	// group.addChild(pivot);
-
-	// path = new Path();
-	// var rect = new Path.Rectangle(20, 20, 40, 80);
-	// rect.fillColor = "rgba(255, 0, 0, 0.5)";
-
-	Paper.view.onKeyDown = onKeyDown;
-	Paper.view.onMouseEnter = onMouseEnter;
-	Paper.view.onMouseLeave = onMouseLeave;
-	Paper.view.onMouseMove = onMouseMove;
 
 	getUserKanji("f1513ed8-8f45-4fd6-9d45-1a2486cc65ba");
 }
@@ -22406,7 +22382,6 @@ function getUserKanji(token) {
 	// onUserDataSuccess();
 
 
-
 	//get list of inds from API
 	( async () => {
 	  const response = await fetch('http://localhost:8081/api/ids', {
@@ -22427,12 +22402,16 @@ function getUserKanji(token) {
 }
 
 function onUserDataSuccess() {
-	// TODO switch virtual pages
+	// switch virtual pages
 	$('page1').style.display = 'none';
 	$('page2').style.display = 'initial';
 
-	// TODO move drawSquares call down here
 	drawKanjiSquares(.1);
+
+	Paper.view.onKeyDown = onKeyDown;
+	Paper.view.onMouseEnter = onMouseEnter;
+	Paper.view.onMouseLeave = onMouseLeave;
+	Paper.view.onMouseMove = onMouseMove;
 }
 
 function onUserDataFailure(error) {
@@ -22473,16 +22452,14 @@ function drawSquare(square, alpha) {
 	let realx = square.x + 2; // offset
 	let realy = square.y + 3; // offset;
 	realx += Math.floor(square.x / 10);
-	realy += Math.floor(square.y / 10)
-	let checkw = 11.95;
-	let checkh = 11.95;
-	realx *= checkw;
-	realy *= checkh;
-	realx = w - (realx + 1);
-	realy -= 1;
+	realy += Math.floor(square.y / 10);
+	let squareSide = 800 / 67; // 800px / number of squares across
+	realx *= squareSide;
+	realy *= squareSide;
+	realx = w - realx;
 
 	var path = new Path();
-	var rect = new Path.Rectangle(realx, realy, checkw, checkh);
+	var rect = new Path.Rectangle(realx, realy, squareSide, squareSide);
 	rect.fillColor = "rgba(255, 0, 0, " + alpha + ")";
 	// rect.stokeColor = "rgba(128,128,128,.1)";
 	return rect;
