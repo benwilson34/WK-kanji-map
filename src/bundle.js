@@ -22332,90 +22332,133 @@ return paper;
 }.call(this, typeof self === 'object' ? self : null);
 
 },{"./node/extend.js":2,"./node/self.js":2,"acorn":1}],4:[function(require,module,exports){
-"use strict";
-
-const Paper = require('paper');
-const Path = Paper.Path;
-var canvas;
-var group;
-var zoomFactor = 2;
-
-let kanjiCoords = [];
-
-
-function $(id) {
-	return document.getElementById(id);
+module.exports.getUserKanji = async (token) => {
+	//get list of inds from API
+	const endpoint = 'http://localhost:8081/api/ids';
+	return await wkApiCall(endpoint, token);
 }
 
-function setup() {
-	console.log('Setting up...');
+module.exports.getAllWkKanji = async (token) => {
+	//get list of inds from API
+	const endpoint = 'http://localhost:8081/api/all-ids';
+	return await wkApiCall(endpoint, token);
+}
 
-	// event listeners
-	$('api-submit-button').addEventListener("click", onSubmitButtonClick);
+async function wkApiCall(endpoint, token) {
+  const response = await fetch(endpoint, {
+  	headers: {
+  		"Authorization": "Bearer " + token
+  	}
+  });
+  return await response.json(); //extract JSON from the http response
+}
+},{}],5:[function(require,module,exports){
+const { $, MAX_KANJI_COUNT } = require('./utils');
+const Paper = require('paper');
+const Path = Paper.Path;
+var displayMode = 'bingo';
+var mapGroup, dataGroup, inverseDataGroup;
+var isDatasetLoaded = false;
+var zoomFactor = 2;
 
-	canvas = $('canvas');
+
+module.exports.init = (canvas) => {
 	Paper.setup(canvas);
-
 	var map = new Paper.Raster('map');
 	map.position = Paper.view.center;
 	map.fitBounds(Paper.view.bounds);
-	group = new Paper.Group(map);
+	mapGroup = new Paper.Group(map);
 
-	getUserKanji("f1513ed8-8f45-4fd6-9d45-1a2486cc65ba");
-}
-
-window.onload = () => { setup(); }
-
-
-// ===========================================
-
-function onSubmitButtonClick() {
-	$('submit-error').innerHTML = "";
-	let token = $("input-token");
-	getUserKanji(token.value);
-}
-
-function getUserKanji(token) {
-	// const num = 3002;
-	// for (var i = 1; i <= num; i++)
-	// 	kanjiCoords.push(indexToCoord(i));
-	// onUserDataSuccess();
-
-
-	//get list of inds from API
-	( async () => {
-	  const response = await fetch('http://localhost:8081/api/ids', {
-	  	headers: {
-	  		"Authorization": "Bearer " + token
-	  	}
-	  });
-	  const json = await response.json(); //extract JSON from the http response
-
-	  if (!!json.error) return onUserDataFailure(json.error);
-
-		json.forEach(i => {
-			kanjiCoords.push(indexToCoord(i));
-		});
-
-		onUserDataSuccess();
-	} )();
-}
-
-function onUserDataSuccess() {
-	// switch virtual pages
-	$('page1').style.display = 'none';
-	$('page2').style.display = 'initial';
-
-	drawKanjiSquares(.1);
-
+	// init overlay mouse controls
 	Paper.view.onKeyDown = onKeyDown;
 	Paper.view.onMouseEnter = onMouseEnter;
 	Paper.view.onMouseLeave = onMouseLeave;
 	Paper.view.onMouseMove = onMouseMove;
 }
 
-function onUserDataFailure(error) {
-	$('submit-error').innerHTML = error + "";
+function onKeyDown(event) {
+	if (!isDatasetLoaded) return;
+
+	const zoomInc = .2;
+	if (event.key === 'w') {
+		zoomFactor += zoomInc;
+		mapGroup.scale(1 + zoomInc);
+	}	else if (event.key === 's') {
+		zoomFactor -= zoomInc;
+		mapGroup.scale(1 + (-1 * zoomInc));
+	}
+	console.log(zoomFactor);
+}
+
+function onMouseEnter(event) {
+	if (!isDatasetLoaded) return;
+	// console.log('\\  Mouse enter!');
+	mapGroup.scale(zoomFactor);
+}
+
+function onMouseLeave(event) {
+	if (!isDatasetLoaded) return;
+	// console.log('/  Mouse leave!');
+	mapGroup.fitBounds(Paper.view.bounds);
+	mapGroup.position = Paper.view.center;
+}
+
+function onMouseMove(event) {
+	if (!isDatasetLoaded) return;
+
+	// transform mouse point
+	let x = event.point.x / Paper.view.viewSize.width;
+	let y = event.point.y / Paper.view.viewSize.height;
+	x = 1 - (x + .25);
+	y = 1 - (y + .25);
+	x *= mapGroup.bounds.width;
+	y *= mapGroup.bounds.height;
+
+	// console.log(x + ', ' + y);
+	let point = new Paper.Point(x, y);
+	// console.log (' |  ' + point);
+	mapGroup.position = point;
+}
+
+// no return
+module.exports.setDataset = (dataset) => {
+	isDatasetLoaded = false;
+
+	// filter out any -1 inds (which indicate one of the 8 WK kanji that aren't on the map)
+	dataset = dataset.filter( ind => ind > 0 );
+	dataGroup = drawSquaresFromIndices(dataset, "rgb(255,0,0)");
+
+	// if it's either of the two other display modes, we'll invert which squares are drawn
+	var inverseInds = [];
+	for(var i = 1; i <= MAX_KANJI_COUNT; i++) {
+		if (dataset.indexOf(i + "") < 0) { // i is not in the inds list
+			// console.log(i);
+			inverseInds.push(i);
+		}
+	}
+	var fillColor = displayMode === 'whiteout' ? 'rgb(255,255,255)' : 'rgb(0,0,0)';
+	inverseDataGroup = drawSquaresFromIndices(inverseInds, fillColor);
+
+	// set both groups as children of the map obj so that they transform together
+	mapGroup.addChildren( [ dataGroup, inverseDataGroup ] );
+
+	// refresh the display
+	switchDisplayMode(displayMode);
+
+	// allow mouse events
+	isDatasetLoaded = true;
+}
+
+// draw square for each point
+function drawSquaresFromIndices(inds, fillColor) {
+	var group = new Paper.Group();
+	var squares = [];
+	inds.forEach(ind => {
+		squares.push( drawSquare(ind, fillColor) );
+	});
+	console.log('finished drawing ' + squares.length + ' squares.');
+	group.addChildren(squares);
+	return group;
 }
 
 function indexToCoord(i) {
@@ -22433,79 +22476,125 @@ function indexToCoord(i) {
 	}
 }
 
-// draw square for each point
-function drawKanjiSquares(alpha) {
-	// ctx.clearRect(0, 0, canvas.width, canvas.height);
-	var squares = [];
-	kanjiCoords.forEach(square => {
-		// this 'if' will catch the 8 undefined kanji
-		if (square.x !== -1) squares.push(drawSquare(square));
-	});
-	group.addChildren(squares);
-}
-
-function drawSquare(square, alpha) {
+function drawSquare(ind, fillColor) {
+	var square = indexToCoord(ind);
 	// console.log(JSON.stringify(square));
-	alpha = alpha === 0 ? 1 : 1;
 
 	let w = 800; // image width
 	let realx = square.x + 2; // offset
 	let realy = square.y + 3; // offset;
 	realx += Math.floor(square.x / 10);
 	realy += Math.floor(square.y / 10);
-	let squareSide = 800 / 67; // 800px / number of squares across
+	let squareSide = w / 67; // width / number of squares across
 	realx *= squareSide;
 	realy *= squareSide;
 	realx = w - realx;
 
 	var path = new Path();
 	var rect = new Path.Rectangle(realx, realy, squareSide, squareSide);
-	rect.fillColor = "rgba(255, 0, 0, " + alpha + ")";
-	// rect.stokeColor = "rgba(128,128,128,.1)";
+	rect.fillColor = fillColor;
 	return rect;
 }
 
-function onKeyDown(event) {
-	const zoomInc = .2;
-	if (event.key === 'w') {
-		zoomFactor += zoomInc;
-		group.scale(1 + zoomInc);
-	}	else if (event.key === 's') {
-		zoomFactor -= zoomInc;
-		group.scale(1 + (-1 * zoomInc));
+module.exports.switchDisplayMode = switchDisplayMode;
+function switchDisplayMode (displayMode) {
+	// filter based on displaymode	
+	if (displayMode === 'bingo') {
+		dataGroup.visible = true;
+		inverseDataGroup.visible = false;
+	} else {
+		inverseDataGroup.visible = true;
+		dataGroup.visible = false;
+
+		inverseDataGroup.style.fillColor = 
+			displayMode === 'whiteout' ? 'rgb(255,255,255)' : 'rgb(0,0,0)';
 	}
-	console.log(zoomFactor);
+		
+	this.displayMode = displayMode;
 }
 
-function onMouseEnter(event) {
-	console.log('\\  Mouse enter!');
-	group.scale(zoomFactor);
+},{"./utils":7,"paper":3}],6:[function(require,module,exports){
+"use strict";
+const { $, MAX_KANJI_COUNT } = require('./utils');
+const display = require('./display');
+const data = require('./data');
+
+var dispModeRadios;
+
+
+// setup -- have to wait for onload because the queries won't work unless the elements exist
+window.onload = () => {
+	console.log('Setting up...');
+
+	// event listeners
+	// submit button
+	$('api-submit-button').addEventListener("click", onSubmitButtonClick);
+
+	// display mode radio buttons
+	dispModeRadios = document.querySelectorAll('input[name=\'display-mode\']');
+	dispModeRadios.forEach( radio => {
+		radio.addEventListener('change', onDispModeChange)
+	} );
+
+	// transparency slider
+	var slider = $("myRange");
+	slider.oninput = onSliderChange;
+
+	// init the display module
+	display.init( $('canvas') );
+
+	// TODO remove
+	handleUserToken("f1513ed8-8f45-4fd6-9d45-1a2486cc65ba");
 }
 
-function onMouseLeave(event) {
-	console.log('/  Mouse leave!');
-	group.fitBounds(Paper.view.bounds);
-	group.position = Paper.view.center;
+
+// ===========================================
+
+function onSubmitButtonClick() {
+	$('submit-error').innerHTML = "";
+	let token = $("input-token");
+	handleUserToken(token.value);
 }
 
-function onMouseMove(event) {
-	// transform mouse point
-	let x = event.point.x / Paper.view.viewSize.width;
-	let y = event.point.y / Paper.view.viewSize.height;
-	x = 1 - (x + .25);
-	y = 1 - (y + .25);
-	x *= group.bounds.width;
-	y *= group.bounds.height;
-
-	// console.log(x + ', ' + y);
-	let point = new Paper.Point(x, y);
-	// console.log (' |  ' + point);
-	group.position = point;
+async function handleUserToken(token) {
+	var json = await data.getUserKanji(token);
+	if (!!json.error)
+  	onUserDataFailure(json.error);
+  else
+		onUserDataSuccess(json);
 }
 
-var slider = $("myRange");
+function onUserDataSuccess(dataset) {
+	// switch virtual pages
+	$('page1').style.display = 'none';
+	$('page2').style.display = 'initial';
+
+	// show actual overlay (bingo mode by default)
+	display.setDataset(dataset);
+}
+
+function onUserDataFailure(error) {
+	$('submit-error').innerHTML = error + "";
+}
+
 // Update the current slider value (each time you drag the slider handle)
-slider.oninput = function() {
-  drawKanjiSquares(this.value / 100);
+function onSliderChange() {
+  // drawKanjiSquares(this.value / 100);
 }
-},{"paper":3}]},{},[4]);
+
+function onDispModeChange() {
+	dispModeRadios.forEach( radio => {
+		if (radio.checked) {
+			console.log(radio.value + ' was clicked');
+			display.switchDisplayMode(radio.value);
+		}
+	} );
+}
+
+},{"./data":4,"./display":5,"./utils":7}],7:[function(require,module,exports){
+module.exports.MAX_KANJI_COUNT = 3002;
+
+module.exports.$ = (id) => {
+	return document.getElementById(id);
+}
+},{}]},{},[6]);
