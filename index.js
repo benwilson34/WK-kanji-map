@@ -5,7 +5,7 @@ const port = process.env.PORT || 8081;
 // morgan?
 
 // statically serve frontend
-app.use(express.static(__dirname + "/src"));
+app.use(express.static(__dirname + "/dist"));
 
 const kanjiConvert = require('./node/kanji-to-index');
 const router = express.Router();

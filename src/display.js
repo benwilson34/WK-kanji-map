@@ -67,11 +67,12 @@ function onMouseMove(event) {
 
 // no return
 module.exports.setDataset = (dataset) => {
+	// prevent mouse events before the dataset is loaded
 	isDatasetLoaded = false;
 
 	// filter out any -1 inds (which indicate one of the 8 WK kanji that aren't on the map)
 	dataset = dataset.filter( ind => ind > 0 );
-	dataGroup = drawSquaresFromIndices(dataset, "rgb(255,0,0)");
+	dataGroup = drawSquaresFromIndices(dataset, "#F84C2E");
 
 	// if it's either of the two other display modes, we'll invert which squares are drawn
 	var inverseInds = [];

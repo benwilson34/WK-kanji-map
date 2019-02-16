@@ -21,21 +21,21 @@ window.onload = () => {
 	} );
 
 	// transparency slider
-	var slider = $("myRange");
-	slider.oninput = onSliderChange;
+	// var slider = $("myRange");
+	// slider.oninput = onSliderChange;
 
 	// init the display module
 	display.init( $('canvas') );
 
 	// TODO remove
-	handleUserToken("f1513ed8-8f45-4fd6-9d45-1a2486cc65ba");
+	// handleUserToken("f1513ed8-8f45-4fd6-9d45-1a2486cc65ba");
 }
 
 
 // ===========================================
 
 function onSubmitButtonClick() {
-	$('submit-error').innerHTML = "";
+	displayResult("Loading...");
 	let token = $("input-token");
 	handleUserToken(token.value);
 }
@@ -50,15 +50,21 @@ async function handleUserToken(token) {
 
 function onUserDataSuccess(dataset) {
 	// switch virtual pages
-	$('page1').style.display = 'none';
-	$('page2').style.display = 'initial';
+	$('token-controls').style.display = 'none';
+	$('map-controls').style.display = 'initial';
 
 	// show actual overlay (bingo mode by default)
 	display.setDataset(dataset);
 }
 
 function onUserDataFailure(error) {
-	$('submit-error').innerHTML = error + "";
+	displayResult('That token didn\'t work...', true);
+}
+
+function displayResult(text, isError = false) {
+	let submitResult = $('submit-result');
+	submitResult.innerHTML = text + "";
+	submitResult.style.color = isError ? 'red' : 'initial';
 }
 
 // Update the current slider value (each time you drag the slider handle)
