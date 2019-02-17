@@ -1,15 +1,21 @@
 const { $, MAX_KANJI_COUNT } = require('./utils');
 const Paper = require('paper');
 const Path = Paper.Path;
+
 var displayMode = 'bingo';
 var mapGroup, dataGroup, inverseDataGroup;
 var isDatasetLoaded = false;
 var zoomFactor = 2;
+var map;
+var width, height;
 
 
-module.exports.init = (canvas) => {
+module.exports.init = (mapArea, canvas) => {
+	canvas.width = width = mapArea.clientWidth;
+	canvas.height = height = mapArea.clientHeight;
+
 	Paper.setup(canvas);
-	var map = new Paper.Raster('map');
+	map = new Paper.Raster('map');
 	map.position = Paper.view.center;
 	map.fitBounds(Paper.view.bounds);
 	mapGroup = new Paper.Group(map);
@@ -19,6 +25,11 @@ module.exports.init = (canvas) => {
 	Paper.view.onMouseEnter = onMouseEnter;
 	Paper.view.onMouseLeave = onMouseLeave;
 	Paper.view.onMouseMove = onMouseMove;
+}
+
+module.exports.resizeCanvas = resizeCanvas;
+function resizeCanvas() {
+
 }
 
 function onKeyDown(event) {
@@ -126,15 +137,18 @@ function drawSquare(ind, fillColor) {
 	var square = indexToCoord(ind);
 	// console.log(JSON.stringify(square));
 
-	let w = 800; // image width
+	const w = width < height ? width : height; // shortest dimension
 	let realx = square.x + 2; // offset
 	let realy = square.y + 3; // offset;
 	realx += Math.floor(square.x / 10);
 	realy += Math.floor(square.y / 10);
-	let squareSide = w / 67; // width / number of squares across
+	const squareSide = (w / 67); // width / number of squares across
 	realx *= squareSide;
 	realy *= squareSide;
 	realx = w - realx;
+	// realx = w - realx - .2;
+	realx += mapGroup.bounds.topLeft.x;
+	realy += mapGroup.bounds.topLeft.y;
 
 	var path = new Path();
 	var rect = new Path.Rectangle(realx, realy, squareSide, squareSide);

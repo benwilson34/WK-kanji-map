@@ -11,8 +11,8 @@ window.onload = () => {
 	console.log('Setting up...');
 
 	// event listeners
-	// submit button
 	$('api-submit-button').addEventListener("click", onSubmitButtonClick);
+	$('save-image-button').addEventListener('click', saveMapAsImage);
 
 	// display mode radio buttons
 	dispModeRadios = document.querySelectorAll('input[name=\'display-mode\']');
@@ -25,18 +25,22 @@ window.onload = () => {
 	// slider.oninput = onSliderChange;
 
 	// init the display module
-	display.init( $('canvas') );
+	display.init( $('map-area'), $('canvas') );
 
 	// TODO remove
-	// handleUserToken("f1513ed8-8f45-4fd6-9d45-1a2486cc65ba");
+	handleUserToken("f1513ed8-8f45-4fd6-9d45-1a2486cc65ba");
 }
 
 
-// ===========================================
+// =================================================================================================
+
+function onResize() {
+	// TODO resize canvas
+}
 
 function onSubmitButtonClick() {
 	displayResult("Loading...");
-	let token = $("input-token");
+	const token = $("input-token");
 	handleUserToken(token.value);
 }
 
@@ -48,21 +52,30 @@ async function handleUserToken(token) {
 		onUserDataSuccess(json);
 }
 
-function onUserDataSuccess(dataset) {
-	// switch virtual pages
-	$('token-controls').style.display = 'none';
-	$('map-controls').style.display = 'initial';
-
-	// show actual overlay (bingo mode by default)
-	display.setDataset(dataset);
-}
-
 function onUserDataFailure(error) {
 	displayResult('That token didn\'t work...', true);
 }
 
+function onUserDataSuccess(dataset) {
+	// switch virtual pages
+	$('landing-menu').style.display = 'none';
+	$('map-menu').style.display = 'initial';
+
+	// show actual overlay (bingo mode by default)
+	display.setDataset(dataset);
+
+	const userCount = dataset.length;
+	const statStr = `You know ${userCount} out of 3002, which is ${getPrettyPercent(userCount)}% `
+		+ `of the kanji on the map.`;
+	$('info-user').innerHTML = statStr;
+}
+
+function getPrettyPercent(userCount) {
+	return ((userCount / 3002) * 100).toFixed(1);
+}
+
 function displayResult(text, isError = false) {
-	let submitResult = $('submit-result');
+	const submitResult = $('submit-result');
 	submitResult.innerHTML = text + "";
 	submitResult.style.color = isError ? 'red' : 'initial';
 }
@@ -79,4 +92,9 @@ function onDispModeChange() {
 			display.switchDisplayMode(radio.value);
 		}
 	} );
+}
+
+function saveMapAsImage() {
+	// TODO
+	console.log('Saving...');
 }

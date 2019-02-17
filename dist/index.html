@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>WaniKani Kanji Map 漢字地図</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<div id='page-container'>
+
+	<div id='sidebar'>
+		<div id='title-area'>
+			<img id='logo' src='img/wanikani.png'>
+			<div id='titles'>
+				<h1 id='title-jp' class='title'>ワニカニ 漢字地図</h1>
+				<h1 id='title-en' class='title'>WaniKani Kanji Map</h1>
+			</div>
+		</div>
+
+		<div id='landing-menu'>
+			Enter your WaniKani API v2 token: 
+			<input type="text" name="token" id="input-token">
+			<button id="api-submit-button">Map Me</button>
+			<div id="submit-result"></div>
+
+			<div class='info-area'>
+				NOTE: You need to have a premium account on <a href='https://www.wanikani.com'>WaniKani</a> 
+				in order to use this map. <br><br>
+				You can get your token by going to Menu > Settings > Account > 
+				Public API Key, then by copying + pasting the "API Version 2" token into the input field above.
+				Then slam that "Map Me" button and watch the Kanji Map get filled out with the kanji you
+				learned that are Guru or higher!
+			</div>
+		</div>
+
+		<div id='map-menu'>
+			<span>Display mode</span><br>
+			<input type='radio' name='display-mode' value='bingo' checked> Bingo <br>
+			<input type='radio' name='display-mode' value='whiteout'> Whiteout <br>
+			<input type='radio' name='display-mode' value='blackout'> Blackout
+
+		<!-- 	<div class="slidecontainer">
+			  <input type="range" min="1" max="100" value="10" class="slider" id="myRange">
+			</div> -->
+
+			<div class='info-area'>
+				Hover your mouse over the map to zoom in and pan around!!<br><br>
+				
+				Out of the 3002 kanji on the map, WaniKani covers 2019 of them. That means that by the time 
+				you're Level 60, you'll know 67.3% of them.<br><br>
+
+				<span id='info-user'>You know 1 kanji out of 3002, which is [[percent]].</span>
+				<span id='info-extra-kanji'>You also know [[num]] of the 8 kanji that aren't on the map ([[kanji]]).</span><br><br>
+			</div>
+
+			You can also 
+			<button id='save-image-button'>Save Map as Image</button>
+		</div>
+
+		<div id='sidebar-filler'></div>
+
+		<div id='footer'>
+			<div id='gh-buttons'>
+				<span id='about-me'>I make web apps! (kinda like this one)</span><br>
+				<a class="github-button" href="https://github.com/benwilson34/WK-kanji-map" aria-label="Star benwilson34/WK-kanji-map on GitHub">View on GitHub</a>
+				&nbsp;&nbsp;
+				<a class="github-button" href="https://github.com/benwilson34" aria-label="Follow @benwilson34 on GitHub">Follow @benwilson34</a>
+			</div>
+			<p>
+				Original image 
+				"<a href="https://commons.wikimedia.org/wiki/File:3002_Kanji.svg">3002 Kanji.svg</a>"
+				by <a href="https://commons.wikimedia.org/wiki/User:Denelson83">Denelson83</a> <br>
+				is licensed under <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en">CC BY-SA 3.0</a>
+			</p>
+		</div>
+	</div>
+
+	<div id="map-area">
+		<canvas id="canvas" resize="true"></canvas>
+	</div>
+
+
+</div>
+
+<img id="map" src="img/3573px-3002_Kanji.svg.png">
+
+<script src="./bundle.js"></script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+</body>
+</html>
