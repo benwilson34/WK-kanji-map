@@ -22,14 +22,14 @@ window.onload = () => {
 	} );
 
 	// transparency slider
-	// var slider = $("myRange");
-	// slider.oninput = onSliderChange;
+	var slider = $("myRange");
+	slider.oninput = onSliderChange;
 
 	// init the display module
 	display.init( $('map-area'), $('canvas') );
 
 	// TODO remove
-	// handleUserToken("32f9c7b1-9b58-48a4-8913-8124b385993d");
+	handleUserToken("32f9c7b1-9b58-48a4-8913-8124b385993d");
 }
 
 
@@ -89,6 +89,7 @@ function displayResult(text, isError = false) {
 // Update the current slider value (each time you drag the slider handle)
 function onSliderChange() {
   // drawKanjiSquares(this.value / 100);
+  display.changeAlpha( (100 - this.value) / 100);
 }
 
 function onDispModeChange() {

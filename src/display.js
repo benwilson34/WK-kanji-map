@@ -3,7 +3,8 @@ const Paper = require('paper');
 const Path = Paper.Path;
 
 var displayMode = 'bingo';
-var mapGroup, dataGroup, inverseDataGroup;
+var alpha = 1;
+var mapGroup, dataGroup, inverseDataGroup, currentDataGroup;
 var isDatasetLoaded = false;
 var zoomFactor = 2;
 var map;
@@ -43,7 +44,7 @@ function onKeyDown(event) {
 		zoomFactor -= zoomInc;
 		mapGroup.scale(1 + (-1 * zoomInc));
 	}
-	console.log(zoomFactor);
+	// console.log(zoomFactor);
 }
 
 function onMouseEnter(event) {
@@ -93,8 +94,7 @@ module.exports.setDataset = (dataset) => {
 			inverseInds.push(i);
 		}
 	}
-	var fillColor = displayMode === 'whiteout' ? 'rgb(255,255,255)' : 'rgb(0,0,0)';
-	inverseDataGroup = drawSquaresFromIndices(inverseInds, fillColor);
+	inverseDataGroup = drawSquaresFromIndices(inverseInds, 'white');
 
 	// set both groups as children of the map obj so that they transform together
 	mapGroup.addChildren( [ dataGroup, inverseDataGroup ] );
@@ -159,16 +159,30 @@ function drawSquare(ind, fillColor) {
 module.exports.switchDisplayMode = switchDisplayMode;
 function switchDisplayMode (displayMode) {
 	// filter based on displaymode	
-	if (displayMode === 'bingo') {
+	if (displayMode === 'none') {
+		dataGroup.visible = false;
+		inverseDataGroup.visible = false;
+	} else if (displayMode === 'bingo') {
 		dataGroup.visible = true;
 		inverseDataGroup.visible = false;
+		currentDataGroup = dataGroup;
 	} else {
 		inverseDataGroup.visible = true;
 		dataGroup.visible = false;
+		currentDataGroup = inverseDataGroup;
 
 		inverseDataGroup.style.fillColor = 
-			displayMode === 'whiteout' ? 'rgb(255,255,255)' : 'rgb(0,0,0)';
+			displayMode === 'whiteout' ? 'white' : 'black';
 	}
-		
+
+	changeAlpha(this.alpha);
 	this.displayMode = displayMode;
+}
+
+module.exports.changeAlpha = changeAlpha;
+function changeAlpha(alpha) {
+	this.alpha = alpha;
+	let color = currentDataGroup.style.fillColor;
+	color.alpha = alpha;
+	currentDataGroup.style.fillColor = color;
 }

@@ -22358,7 +22358,8 @@ const Paper = require('paper');
 const Path = Paper.Path;
 
 var displayMode = 'bingo';
-var mapGroup, dataGroup, inverseDataGroup;
+var alpha = 1;
+var mapGroup, dataGroup, inverseDataGroup, currentDataGroup;
 var isDatasetLoaded = false;
 var zoomFactor = 2;
 var map;
@@ -22398,7 +22399,7 @@ function onKeyDown(event) {
 		zoomFactor -= zoomInc;
 		mapGroup.scale(1 + (-1 * zoomInc));
 	}
-	console.log(zoomFactor);
+	// console.log(zoomFactor);
 }
 
 function onMouseEnter(event) {
@@ -22448,8 +22449,7 @@ module.exports.setDataset = (dataset) => {
 			inverseInds.push(i);
 		}
 	}
-	var fillColor = displayMode === 'whiteout' ? 'rgb(255,255,255)' : 'rgb(0,0,0)';
-	inverseDataGroup = drawSquaresFromIndices(inverseInds, fillColor);
+	inverseDataGroup = drawSquaresFromIndices(inverseInds, 'white');
 
 	// set both groups as children of the map obj so that they transform together
 	mapGroup.addChildren( [ dataGroup, inverseDataGroup ] );
@@ -22514,20 +22514,33 @@ function drawSquare(ind, fillColor) {
 module.exports.switchDisplayMode = switchDisplayMode;
 function switchDisplayMode (displayMode) {
 	// filter based on displaymode	
-	if (displayMode === 'bingo') {
+	if (displayMode === 'none') {
+		dataGroup.visible = false;
+		inverseDataGroup.visible = false;
+	} else if (displayMode === 'bingo') {
 		dataGroup.visible = true;
 		inverseDataGroup.visible = false;
+		currentDataGroup = dataGroup;
 	} else {
 		inverseDataGroup.visible = true;
 		dataGroup.visible = false;
+		currentDataGroup = inverseDataGroup;
 
 		inverseDataGroup.style.fillColor = 
-			displayMode === 'whiteout' ? 'rgb(255,255,255)' : 'rgb(0,0,0)';
+			displayMode === 'whiteout' ? 'white' : 'black';
 	}
-		
+
+	changeAlpha(this.alpha);
 	this.displayMode = displayMode;
 }
 
+module.exports.changeAlpha = changeAlpha;
+function changeAlpha(alpha) {
+	this.alpha = alpha;
+	let color = currentDataGroup.style.fillColor;
+	color.alpha = alpha;
+	currentDataGroup.style.fillColor = color;
+}
 },{"./utils":7,"paper":3}],6:[function(require,module,exports){
 "use strict";
 const display = require('./display');
@@ -22553,14 +22566,14 @@ window.onload = () => {
 	} );
 
 	// transparency slider
-	// var slider = $("myRange");
-	// slider.oninput = onSliderChange;
+	var slider = $("myRange");
+	slider.oninput = onSliderChange;
 
 	// init the display module
 	display.init( $('map-area'), $('canvas') );
 
 	// TODO remove
-	// handleUserToken("32f9c7b1-9b58-48a4-8913-8124b385993d");
+	handleUserToken("32f9c7b1-9b58-48a4-8913-8124b385993d");
 }
 
 
@@ -22620,6 +22633,7 @@ function displayResult(text, isError = false) {
 // Update the current slider value (each time you drag the slider handle)
 function onSliderChange() {
   // drawKanjiSquares(this.value / 100);
+  display.changeAlpha( (100 - this.value) / 100);
 }
 
 function onDispModeChange() {

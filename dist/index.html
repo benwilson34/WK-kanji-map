@@ -33,18 +33,47 @@
 		</div>
 
 		<div id='map-menu'>
-			<span>Display mode</span><br>
-			<input type='radio' name='display-mode' value='bingo' checked> Bingo <br>
-			<input type='radio' name='display-mode' value='whiteout'> Whiteout <br>
-			<input type='radio' name='display-mode' value='blackout'> Blackout
+			<div class='tool-header'style='margin-top: 0px'> Zoom and Pan </div>
+			<span>
+				Hover your mouse over the map to zoom in and pan around. Press 'W' to increase zoom, 
+				and press 'S' to decrease zoom.
+			</span>
 
-		<!-- 	<div class="slidecontainer">
-			  <input type="range" min="1" max="100" value="10" class="slider" id="myRange">
-			</div> -->
+			<div class='tool-header'> Display mode</div>
+			<table>
+				<tr><td class='display-mode-radio-col'>
+					<input type='radio' name='display-mode' value='none'> None <br>
+				</td><td class='display-mode-desc-col'>
+					Show the original map
+				</td></tr>
+
+				<tr><td class='display-mode-radio-col'>
+					<input type='radio' name='display-mode' value='bingo' checked> Bingo <br>
+				</td><td class='display-mode-desc-col'>
+					Display red squares over the kanji you've learned
+				</td></tr>
+
+				<tr><td class='display-mode-radio-col'>
+					<input type='radio' name='display-mode' value='whiteout'> Whiteout <br>
+				</td><td class='display-mode-desc-col'>
+					White out the kanji you haven't learned yet
+				</td></tr>
+
+				<tr><td class='display-mode-radio-col'>
+					<input type='radio' name='display-mode' value='blackout'> Blackout
+				</td><td class='display-mode-desc-col'>
+					Black out the kanji you haven't learned yet
+				</td></tr>
+			</table>
+
+			<div class='tool-header' >Transparency</div>
+			<div class="slidecontainer">
+			  <input type="range" min="1" max="100" value="0" class="slider" id="myRange">
+			</div>
+
+			<div class='rule'></div>
 
 			<div class='info-area'>
-				Hover your mouse over the map to zoom in and pan around!!<br><br>
-				
 				Out of the 3002 kanji on the map, WaniKani covers 2019 of them. That means that by the time 
 				you're Level 60, you'll know 67.3% of the kanji on the map.<br><br>
 
