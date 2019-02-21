@@ -1,7 +1,8 @@
 "use strict";
-const { $, MAX_KANJI_COUNT } = require('./utils');
 const display = require('./display');
 const data = require('./data');
+const { $, MAX_KANJI_COUNT } = require('./utils');
+const tokenRegex = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/gi;
 
 var dispModeRadios;
 
@@ -28,7 +29,7 @@ window.onload = () => {
 	display.init( $('map-area'), $('canvas') );
 
 	// TODO remove
-	handleUserToken("f1513ed8-8f45-4fd6-9d45-1a2486cc65ba");
+	// handleUserToken("32f9c7b1-9b58-48a4-8913-8124b385993d");
 }
 
 
@@ -40,20 +41,22 @@ function onResize() {
 
 function onSubmitButtonClick() {
 	displayResult("Loading...");
-	const token = $("input-token");
-	handleUserToken(token.value);
+	const token = $("input-token").value;
+
+	if (!token.length)
+		return displayResult('Token required.', true);
+	if (!token.match(tokenRegex))
+		return displayResult('Token is not the right format. Did you get a v1 token by accident?', true);
+	
+	handleUserToken(token);
 }
 
 async function handleUserToken(token) {
 	var json = await data.getUserKanji(token);
 	if (!!json.error)
-  	onUserDataFailure(json.error);
+		return displayResult('That token didn\'t work...', true);
   else
 		onUserDataSuccess(json);
-}
-
-function onUserDataFailure(error) {
-	displayResult('That token didn\'t work...', true);
 }
 
 function onUserDataSuccess(dataset) {
@@ -68,6 +71,9 @@ function onUserDataSuccess(dataset) {
 	const statStr = `You know ${userCount} out of 3002, which is ${getPrettyPercent(userCount)}% `
 		+ `of the kanji on the map.`;
 	$('info-user').innerHTML = statStr;
+	const extraKanjiStr = `You also know ${dataset.filter(e => !e).length} of the 8 kanji that `
+		+ `are not on the map.`;
+	$('info-extra-kanji').innerHTML = extraKanjiStr;
 }
 
 function getPrettyPercent(userCount) {

@@ -56,6 +56,10 @@ h1.title {
   font-family: sans-serif;
 }
 
+#input-token {
+  width: 270px;
+}
+
 /* this is only an initial style; changed in code */
 #map-menu {
   display: none;
