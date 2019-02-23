@@ -63,18 +63,28 @@ function onMouseLeave(event) {
 function onMouseMove(event) {
 	if (!isDatasetLoaded) return;
 
-	// transform mouse point
-	let x = event.point.x / Paper.view.viewSize.width;
-	let y = event.point.y / Paper.view.viewSize.height;
-	x = 1 - (x + .25);
-	y = 1 - (y + .25);
-	x *= mapGroup.bounds.width;
-	y *= mapGroup.bounds.height;
+	// map mouse in corners of viewport to corners of map
+	let viewWidth  = Paper.view.viewSize.width,
+	    viewHeight = Paper.view.viewSize.height;
+	// ratios are 0..1 for relative position in viewport
+	let xRatio = event.point.x / viewWidth;
+	let yRatio = event.point.y / viewHeight;
+	// this brings the virtual corners in to make panning a little more friendly
+	// const compressionPercent = 0.15, // 5% compression on all sides (think 5% padding in viewport)
+	//       compressedAmount = 1 + (compressionPercent * 2);
+	// xRatio = (xRatio * compressedAmount) - compressionPercent;
+	// yRatio = (yRatio * compressedAmount) - compressionPercent;
+	// transform amounts are the maximum translation along either axis
+	let xTrans = mapGroup.bounds.width  - viewWidth;
+	let yTrans = mapGroup.bounds.height - viewHeight;
+	// console.log(`ratio(${xRatio},${yRatio}) trans(${xTrans},${yTrans})`);
+	let x = -1 * xRatio * xTrans;
+	let y = -1 * yRatio * yTrans;
+	// adjust for the pivot being at the center of the mapGroup
+	x += mapGroup.bounds.width  / 2;
+	y += mapGroup.bounds.height / 2;
 
-	// console.log(x + ', ' + y);
-	let point = new Paper.Point(x, y);
-	// console.log (' |  ' + point);
-	mapGroup.position = point;
+	mapGroup.position = new Paper.Point(x, y);
 }
 
 // no return

@@ -13,7 +13,7 @@ window.onload = () => {
 
 	// event listeners
 	$('api-submit-button').addEventListener("click", onSubmitButtonClick);
-	$('save-image-button').addEventListener('click', saveMapAsImage);
+	// $('save-image-button').addEventListener('click', saveMapAsImage);
 
 	// display mode radio buttons
 	dispModeRadios = document.querySelectorAll('input[name=\'display-mode\']');
