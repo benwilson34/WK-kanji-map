@@ -61,7 +61,7 @@ h1.title {
 }
 
 /* this is only an initial style; changed in code */
-#map-menu {
+#cookie-loading-menu, #map-menu {
   display: none;
 }
 div.tool-header {
@@ -83,6 +83,10 @@ div.rule {
   /*height: 1px;*/
   border-top: 1px solid #00000099;
   margin: 18px 0;
+}
+
+#clear-token {
+  cursor: pointer;
 }
 
 #sidebar-filler {

@@ -8,6 +8,10 @@ const request = require('request');
 var kanjiUrl = 'https://api.wanikani.com/v2/subjects?types=kanji';
 var wkKanji = {};
 
+const csv = require('csvtojson');
+const filepath = './kkld_kklc_hen.csv';
+
+
 getPageOfKanji(kanjiUrl);
 
 function getPageOfKanji(url) {
@@ -41,7 +45,7 @@ function getPageOfKanji(url) {
 function compositeRes() {
   let compObj = {};
 
-  fs.readFile(filepath, (err, data) => {
+  getKKLDlist().then( () => {
     if (err) throw err;
 
     let index = JSON.parse(data);
@@ -60,5 +64,23 @@ function compositeRes() {
     console.log(`Could not associate:` + noAssoc.toString())
 
     fs.writeFileSync("wk-kkld.json", JSON.stringify(compObj));
-  });
+  })
+  .catch( err => console.error(err) );
+}
+
+function getKKLDlist () {
+  return csv().fromFile(filepath)
+    .then(jsonObj => {
+      // console.log(JSON.stringify(jsonObj[0]));
+      // console.log(JSON.stringify(jsonObj[1]));
+      // console.log(JSON.stringify(jsonObj[2]));
+
+      let formattedObj = {};
+      jsonObj.forEach(el => {
+        formattedObj[el.kanji] = el;
+        // delete formattedObj[el.kanji].kanji;
+      });
+
+      return formattedObj;
+    });
 }

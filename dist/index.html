@@ -16,22 +16,37 @@
 			</div>
 		</div>
 
+
+		<!-- LANDING MENU -->
 		<div id='landing-menu'>
 			Enter your WaniKani API v2 token: 
 			<input type="text" name="token" id="input-token" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
 			<button id="api-submit-button">Map Me</button>
+			<input type='checkbox' id='remember-token'>Remember token
 			<span id="submit-result"></span>
 
 			<div class='info-area'>
-				NOTE: You need to have a premium account on <a href='https://www.wanikani.com'>WaniKani</a> 
+				<br>NOTE: You need to have a premium account on <a href='https://www.wanikani.com'>WaniKani</a> 
 				in order to use this map. <br><br>
-				You can get your token by going to Menu > Settings > Account > 
-				Public API Key, then by copying + pasting the "API Version 2" token into the input field above.
+				You can get a token by going to 
+				<a href='https://www.wanikani.com/settings/personal_access_tokens'>
+					Menu > Settings > API Tokens</a>.
+				In the "Personal Access Tokens" section, Click the "Generate a new token" button. On the next
+				page, type in a description like 'wk-kanji-map', then click the "Generate token" button at the 
+				bottom of the page (leave all the permissions unchecked). Then copy and paste the token into
+				the input field above.<br><br>
 				Then slam that "Map Me" button and watch the Kanji Map get filled out with the kanji you
 				learned that are Guru or higher!
 			</div>
 		</div>
 
+		<!-- COOKIE LOADING -->
+		<div id='cookie-loading-menu'>
+			Loading from saved token...			
+		</div>
+
+
+		<!-- MAP MENU -->
 		<div id='map-menu'>
 			<div class='tool-header'style='margin-top: 0px'> Zoom and Pan </div>
 			<span>
@@ -66,7 +81,7 @@
 				</td></tr>
 			</table>
 
-			<div class='tool-header' >Transparency</div>
+			<div class='tool-header'>Transparency</div>
 			<div class="slidecontainer">
 			  <input type="range" min="1" max="100" value="0" class="slider" id="myRange">
 			</div>
@@ -79,6 +94,8 @@
 
 				<span id='info-user'>You know 1 kanji out of 3002, which is [[percent]].</span>
 				<span id='info-extra-kanji'>You also know [[num]] of the 8 kanji that aren't on the map.</span><br><br>
+
+				<a href='' id='clear-token'>Log out and forget saved token</a>
 			</div>
 
 			<!-- TODO -->

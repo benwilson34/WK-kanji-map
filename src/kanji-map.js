@@ -1,4 +1,6 @@
 "use strict";
+const Cookies = require('js-cookie');
+const tokenCname = 'wktoken';
 const display = require('./display');
 const data = require('./data');
 const { $, MAX_KANJI_COUNT } = require('./utils');
@@ -13,6 +15,7 @@ window.onload = () => {
 
 	// event listeners
 	$('api-submit-button').addEventListener("click", onSubmitButtonClick);
+	$('clear-token').addEventListener("click", onClearTokenClick);
 	// $('save-image-button').addEventListener('click', saveMapAsImage);
 
 	// display mode radio buttons
@@ -22,14 +25,20 @@ window.onload = () => {
 	} );
 
 	// transparency slider
-	var slider = $("myRange");
+	const slider = $("myRange");
 	slider.oninput = onSliderChange;
 
 	// init the display module
 	display.init( $('map-area'), $('canvas') );
 
-	// TODO remove
-	handleUserToken("32f9c7b1-9b58-48a4-8913-8124b385993d");
+	// check for saved token
+	const token = Cookies.get(tokenCname);
+	if (!!token) {
+		switchMenu('cookie-loading-menu');
+		handleUserToken(token);
+		// alert('found saved token');
+		// TODO enable UI element to clear cookie
+	}
 }
 
 
@@ -46,13 +55,16 @@ function onSubmitButtonClick() {
 	if (!token.length)
 		return displayResult('Token required.', true);
 	if (!token.match(tokenRegex))
-		return displayResult('Token is not the right format. Did you get a v1 token by accident?', true);
+		return displayResult('Token is not the right format. Did you copy the v1 token by accident?', true);
 	
+	const rememberToken = $('remember-token').checked;
+	if (rememberToken) Cookies.set(tokenCname, token);
+
 	handleUserToken(token);
 }
 
 async function handleUserToken(token) {
-	var json = await data.getUserKanji(token);
+	const json = await data.getUserKanji(token);
 	if (!!json.error)
 		return displayResult('That token didn\'t work...', true);
   else
@@ -61,18 +73,17 @@ async function handleUserToken(token) {
 
 function onUserDataSuccess(dataset) {
 	// switch virtual pages
-	$('landing-menu').style.display = 'none';
-	$('map-menu').style.display = 'initial';
+	switchMenu('map-menu');
 
 	// show actual overlay (bingo mode by default)
 	display.setDataset(dataset);
 
 	const userCount = dataset.length;
-	const statStr = `You know ${userCount} out of 3002, which is ${getPrettyPercent(userCount)}% `
-		+ `of the kanji on the map.`;
+	const statStr = `You know ${userCount} out of 3002, which is ${getPrettyPercent(userCount)}% ` + 
+		`of the kanji on the map.`;
 	$('info-user').innerHTML = statStr;
-	const extraKanjiStr = `You also know ${dataset.filter(e => !e).length} of the 8 kanji that `
-		+ `are not on the map.`;
+	const extraKanjiStr = `You also know ${dataset.filter(e => !e).length} of the 8 kanji that ` + 
+		`are not on the map.`;
 	$('info-extra-kanji').innerHTML = extraKanjiStr;
 }
 
@@ -84,6 +95,13 @@ function displayResult(text, isError = false) {
 	const submitResult = $('submit-result');
 	submitResult.innerHTML = text + "";
 	submitResult.style.color = isError ? 'red' : 'initial';
+}
+
+function switchMenu(displayMenu) {
+	const menus = [ 'landing-menu', 'cookie-loading-menu', 'map-menu' ];
+	menus.forEach( menu => {
+		$(menu).style.display = displayMenu === menu ? 'initial' : 'none';
+	} );
 }
 
 // Update the current slider value (each time you drag the slider handle)
@@ -104,4 +122,13 @@ function onDispModeChange() {
 function saveMapAsImage() {
 	// TODO
 	console.log('Saving...');
+}
+
+function onClearTokenClick() {
+	console.log('clearing token...');
+
+	Cookies.remove(tokenCname);
+	// TODO go back to first toolbar screen
+	// or just refresh?
+	location.reload();
 }
