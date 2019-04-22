@@ -1,35 +1,46 @@
-// NOTE: This only needs to be re-run if/when WK changes the kanji list. 
-// It generates a static JSON resource file called wk-kkld.json that the API uses.
+/**
+ * This modules associates the 2019 kanji that are part of WK with a KKLD index. This generates a 
+ * resource file, 'wk-kkld.json', which the API handler reads from. 
+ * NOTE This is run with 'npm run resource', but only needs to be run if/when WK adds or removes 
+ * kanji from their system. 
+ * @module /node/resource/convert-sid-kkld
+ */
 const fs = require('fs');
 const request = require('request');
-const kanjiUrl = 'https://api.wanikani.com/v2/subjects?types=kanji';
 const csv = require('csvtojson');
-// NOTE I don't like these paths but unless I wanna make this a module this is how it is
-const csvFilepath = './node/resource/kkld_kklc_hen.csv';
-const jsonFilepath = './node/resource/wk-kkld.json';
+const kanjiUrl = 'https://api.wanikani.com/v2/subjects?types=kanji';
+const csvFilepath = __dirname + '/kkld_kklc_hen.csv';
+const jsonFilepath = __dirname + '/wk-kkld.json';
 // TODO get token from env-vars
 
 
 // MAIN ============================================================================================
 
-var wkKanji = {};
+// start off the retrieval, it'll generate the object from here and save to file
 getPageOfKanji(kanjiUrl);
 
 // =================================================================================================
 
 
-function getPageOfKanji(url) {
+/**
+ * Get all WK kanji in their system using the API. They are returned in pages of 1000 kanji, so 
+ * there will be three pages total (so three API calls). When all the kanji have been retrieved, 
+ * it calls @see compositeRes. 
+ * @param  {string} url     - the WK API URL to call.
+ * @param  {object} wkKanji - the object containing the WJ kanji retrieved so far. First call is null.
+ */
+function getPageOfKanji(url, wkKanji = null) {
+  if (!wkKanji) wkKanji = {};
+
   request.get(url, {
-    'auth': {
-      'bearer': '06a889e3-c519-47d2-9bcf-ddb82c96040e'
-    }
+    'auth': { 'bearer': '06a889e3-c519-47d2-9bcf-ddb82c96040e' }
   },
   (error, response, body) => {
     if (error) console.log(error);
 
     let bodyObj = JSON.parse(body);
-
     let kanjiStr = "";
+
     // add WK kanji to obj
     bodyObj.data.forEach(el => {
       kanjiStr += el.data.characters;
@@ -37,46 +48,58 @@ function getPageOfKanji(url) {
     });
     console.log(kanjiStr);
 
+    // if there's another page, recursively call getPageOfKanji. 
+    // If not, that's all the kanji, move on to creating the object/file.
     console.log(bodyObj.pages.next_url);
     if (!!bodyObj.pages.next_url)
-      getPageOfKanji(bodyObj.pages.next_url);
+      getPageOfKanji(bodyObj.pages.next_url, wkKanji);
     else
-      compositeRes();
+      associateKanjiToIndex(wkKanji);
   });
 }
 
-// relate WK kanji id -> kkld index
-function compositeRes() {
+/**
+ * Take an object with WK kanji by character and associate KKLD indices with the kanji. Saves the 
+ * resultant object to /node/resource/wk-kkld.json
+ * @param {object} - the object containing the kanji to associate, with structure resembling:
+ *                   { '倹': 2465, '狐': 2466, ... }
+ */
+function associateKanjiToIndex(wkKanji) {
   let compObj = {};
 
-  getKKLDlist().then( indexes => {
+  getKKLDdict().then( KKLDdict => {
     let noAssoc = [];
 
+    // structure will resemble: { "id440": "2850", "id441": "1688", "id442": "2858", ... }
     for (var k in wkKanji) {
-      if (!indexes[k]) {
+      if (!KKLDdict[k]) {
         noAssoc.push(k);
         continue;
       }
-      let id = wkKanji[k];
-      let kkld = indexes[k].kkld;
-      compObj["id" + id] = kkld;
+      let wkid = wkKanji[k];
+      compObj["id" + wkid] = KKLDdict[k];
     }
-    console.log(`Could not associate:` + noAssoc.toString())
+    console.log(`Could not associate:` + noAssoc.toString());
 
+    // save the object to file
     fs.writeFileSync(jsonFilepath, JSON.stringify(compObj, null, '  '));
+    console.log('Done writing resource object to ' + jsonFilepath);
   })
   .catch( err => console.error(err) );
 }
 
-function getKKLDlist () {
+/**
+ * Get list of indices from CSV file - @see kkld_kklc_hen.csv and csvtojson.
+ * @return {Promise<object>} - Resolves with object relating kanji to KKLD index, resembling:
+ *                             { '爾' : '3001', '畿': '3002', ... }
+ */
+function getKKLDdict () {
   return csv().fromFile(csvFilepath)
     .then(jsonObj => {
-      let formattedObj = {};
+      let kkldDict = {};
       jsonObj.forEach(el => {
-        formattedObj[el.kanji] = el;
-        // delete formattedObj[el.kanji].kanji;
+        kkldDict[el.kanji] = el.kkld;
       });
-
-      return formattedObj;
+      return kkldDict;
     });
 }
