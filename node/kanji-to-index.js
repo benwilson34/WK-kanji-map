@@ -1,5 +1,5 @@
 const fs = require('fs');
-const filepath = __dirname + '/wk-kkld.json';
+const filepath = __dirname + '/resource/wk-kkld.json';
 const wkidToIndex = JSON.parse(fs.readFileSync(filepath)); // unsafe but w/e
 
 const request = require('request');
