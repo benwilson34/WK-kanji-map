@@ -5336,6 +5336,12 @@ Object.defineProperty(exports, '__esModule', { value: true });
 },{}],2:[function(require,module,exports){
 
 },{}],3:[function(require,module,exports){
+(function (global){
+(function(a,b){if("function"==typeof define&&define.amd)define([],b);else if("undefined"!=typeof exports)b();else{b(),a.FileSaver={exports:{}}.exports}})(this,function(){"use strict";function b(a,b){return"undefined"==typeof b?b={autoBom:!1}:"object"!=typeof b&&(console.warn("Deprecated: Expected third argument to be a object"),b={autoBom:!b}),b.autoBom&&/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(a.type)?new Blob(["\uFEFF",a],{type:a.type}):a}function c(b,c,d){var e=new XMLHttpRequest;e.open("GET",b),e.responseType="blob",e.onload=function(){a(e.response,c,d)},e.onerror=function(){console.error("could not download file")},e.send()}function d(a){var b=new XMLHttpRequest;return b.open("HEAD",a,!1),b.send(),200<=b.status&&299>=b.status}function e(a){try{a.dispatchEvent(new MouseEvent("click"))}catch(c){var b=document.createEvent("MouseEvents");b.initMouseEvent("click",!0,!0,window,0,0,0,80,20,!1,!1,!1,!1,0,null),a.dispatchEvent(b)}}var f="object"==typeof window&&window.window===window?window:"object"==typeof self&&self.self===self?self:"object"==typeof global&&global.global===global?global:void 0,a=f.saveAs||("object"!=typeof window||window!==f?function(){}:"download"in HTMLAnchorElement.prototype?function(b,g,h){var i=f.URL||f.webkitURL,j=document.createElement("a");g=g||b.name||"download",j.download=g,j.rel="noopener","string"==typeof b?(j.href=b,j.origin===location.origin?e(j):d(j.href)?c(b,g,h):e(j,j.target="_blank")):(j.href=i.createObjectURL(b),setTimeout(function(){i.revokeObjectURL(j.href)},4E4),setTimeout(function(){e(j)},0))}:"msSaveOrOpenBlob"in navigator?function(f,g,h){if(g=g||f.name||"download","string"!=typeof f)navigator.msSaveOrOpenBlob(b(f,h),g);else if(d(f))c(f,g,h);else{var i=document.createElement("a");i.href=f,i.target="_blank",setTimeout(function(){e(i)})}}:function(a,b,d,e){if(e=e||open("","_blank"),e&&(e.document.title=e.document.body.innerText="downloading..."),"string"==typeof a)return c(a,b,d);var g="application/octet-stream"===a.type,h=/constructor/i.test(f.HTMLElement)||f.safari,i=/CriOS\/[\d]+/.test(navigator.userAgent);if((i||g&&h)&&"object"==typeof FileReader){var j=new FileReader;j.onloadend=function(){var a=j.result;a=i?a:a.replace(/^data:[^;]*;/,"data:attachment/file;"),e?e.location.href=a:location=a,e=null},j.readAsDataURL(a)}else{var k=f.URL||f.webkitURL,l=k.createObjectURL(a);e?e.location=l:location.href=l,e=null,setTimeout(function(){k.revokeObjectURL(l)},4E4)}});f.saveAs=a.saveAs=a,"undefined"!=typeof module&&(module.exports=a)});
+
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],4:[function(require,module,exports){
 /*!
  * JavaScript Cookie v2.2.0
  * https://github.com/js-cookie/js-cookie
@@ -5502,7 +5508,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 	return init(function () {});
 }));
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /*!
  * Paper.js v0.12.0 - The Swiss Army Knife of Vector Graphics Scripting.
  * http://paperjs.org/
@@ -22498,7 +22504,7 @@ if (typeof define === 'function' && define.amd) {
 return paper;
 }.call(this, typeof self === 'object' ? self : null);
 
-},{"./node/extend.js":2,"./node/self.js":2,"acorn":1}],5:[function(require,module,exports){
+},{"./node/extend.js":2,"./node/self.js":2,"acorn":1}],6:[function(require,module,exports){
 module.exports.getUserKanji = async (token) => {
 	//get list of inds from API
 	const endpoint = 'http://localhost:8081/api/ids';
@@ -22519,11 +22525,19 @@ async function wkApiCall(endpoint, token) {
   });
   return await response.json(); //extract JSON from the http response
 }
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 const { $, MAX_KANJI_COUNT } = require('./utils');
 const Paper = require('paper');
 const Path = Paper.Path;
+// const Canvas2Image = require('canvas2image');
+// console.log(!!Canvas2Image);
+// console.log(require('util').inspect(Canvas2Image));
+// const ReImg = require('reimg').ReImg;
+// console.log(require('util').inspect(ReImg));
+const { saveAs } = require('file-saver');
 
+
+var canvas;
 var displayMode = 'bingo';
 var alpha = 1;
 var mapGroup, dataGroup, inverseDataGroup, currentDataGroup;
@@ -22533,11 +22547,14 @@ var map;
 var width, height;
 
 
-module.exports.init = (mapArea, canvas) => {
+module.exports.init = (mapArea, canvasIn) => {
+	canvas = canvasIn;
 	canvas.width = width = mapArea.clientWidth;
 	canvas.height = height = mapArea.clientHeight;
 
 	Paper.setup(canvas);
+
+	// init map image
 	map = new Paper.Raster('map');
 	map.position = Paper.view.center;
 	map.fitBounds(Paper.view.bounds);
@@ -22718,7 +22735,25 @@ function changeAlpha(alpha) {
 	color.alpha = alpha;
 	currentDataGroup.style.fillColor = color;
 }
-},{"./utils":8,"paper":4}],7:[function(require,module,exports){
+
+module.exports.saveMapAsImage = (link) => {
+	// console.log(require('util').inspect(ReImg));
+	// var png = ReImg.fromCanvas(canvas).downloadPng('sample.png');
+	// TODO 
+  let raster = mapGroup.rasterize(250, false);
+  let img = raster.toDataURL();
+  // link.download = 'TRYING.png';
+  // img = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+  // img = img.replace("image/png", "image/octet-stream");
+  // console.log(JSON.stringify(img));
+  // link.href = img;
+  // link.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
+  // link.setAttribute('href', img.replace("image/png", "image/octet-stream"));
+  // link.click();
+  saveAs(img, 'trying.png');
+}
+
+},{"./utils":9,"file-saver":3,"paper":5}],8:[function(require,module,exports){
 /**
  * This is the main module for the frontend. It mainly manages the other modules and handles the UI.
  * NOTE rename to main.js? Then rename "display.js" to "map.js"?
@@ -22763,7 +22798,7 @@ function setUpEventListeners() {
 	// buttons
 	$('api-submit-button').addEventListener("click", onSubmitButtonClick);
 	$('clear-token').addEventListener("click", onClearTokenClick);
-	// $('save-image-button').addEventListener('click', onSaveImageButtonClick);
+	$('save-image-button').addEventListener('click', onSaveImageButtonClick);
 
 	// display mode radio buttons
 	dispModeRadios = document.querySelectorAll('input[name=\'display-mode\']');
@@ -22826,8 +22861,8 @@ function onSliderChange() {
 }
 
 function onSaveImageButtonClick() {
-	// TODO
 	console.log('Saving...');
+	display.saveMapAsImage($('img-download'));
 }
 
 function onResize() {
@@ -22902,11 +22937,11 @@ function switchMenu(displayMenu) {
 	} );
 }
 
-},{"./data":5,"./display":6,"./utils":8,"js-cookie":3}],8:[function(require,module,exports){
+},{"./data":6,"./display":7,"./utils":9,"js-cookie":4}],9:[function(require,module,exports){
 module.exports.MAX_KANJI_COUNT = 3002;
 
 module.exports.$ = (id) => {
 	return document.getElementById(id);
 }
 
-},{}]},{},[7]);
+},{}]},{},[8]);

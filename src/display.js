@@ -1,7 +1,15 @@
 const { $, MAX_KANJI_COUNT } = require('./utils');
 const Paper = require('paper');
 const Path = Paper.Path;
+// const Canvas2Image = require('canvas2image');
+// console.log(!!Canvas2Image);
+// console.log(require('util').inspect(Canvas2Image));
+// const ReImg = require('reimg').ReImg;
+// console.log(require('util').inspect(ReImg));
+const { saveAs } = require('file-saver');
 
+
+var canvas;
 var displayMode = 'bingo';
 var alpha = 1;
 var mapGroup, dataGroup, inverseDataGroup, currentDataGroup;
@@ -11,11 +19,14 @@ var map;
 var width, height;
 
 
-module.exports.init = (mapArea, canvas) => {
+module.exports.init = (mapArea, canvasIn) => {
+	canvas = canvasIn;
 	canvas.width = width = mapArea.clientWidth;
 	canvas.height = height = mapArea.clientHeight;
 
 	Paper.setup(canvas);
+
+	// init map image
 	map = new Paper.Raster('map');
 	map.position = Paper.view.center;
 	map.fitBounds(Paper.view.bounds);
@@ -195,4 +206,21 @@ function changeAlpha(alpha) {
 	let color = currentDataGroup.style.fillColor;
 	color.alpha = alpha;
 	currentDataGroup.style.fillColor = color;
+}
+
+module.exports.saveMapAsImage = (link) => {
+	// console.log(require('util').inspect(ReImg));
+	// var png = ReImg.fromCanvas(canvas).downloadPng('sample.png');
+	// TODO 
+  let raster = mapGroup.rasterize(250, false);
+  let img = raster.toDataURL();
+  // link.download = 'TRYING.png';
+  // img = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+  // img = img.replace("image/png", "image/octet-stream");
+  // console.log(JSON.stringify(img));
+  // link.href = img;
+  // link.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
+  // link.setAttribute('href', img.replace("image/png", "image/octet-stream"));
+  // link.click();
+  saveAs(img, 'trying.png');
 }

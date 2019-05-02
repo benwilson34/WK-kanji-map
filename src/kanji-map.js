@@ -42,7 +42,7 @@ function setUpEventListeners() {
 	// buttons
 	$('api-submit-button').addEventListener("click", onSubmitButtonClick);
 	$('clear-token').addEventListener("click", onClearTokenClick);
-	// $('save-image-button').addEventListener('click', onSaveImageButtonClick);
+	$('save-image-button').addEventListener('click', onSaveImageButtonClick);
 
 	// display mode radio buttons
 	dispModeRadios = document.querySelectorAll('input[name=\'display-mode\']');
@@ -105,8 +105,8 @@ function onSliderChange() {
 }
 
 function onSaveImageButtonClick() {
-	// TODO
 	console.log('Saving...');
+	display.saveMapAsImage($('img-download'));
 }
 
 function onResize() {
