@@ -6,10 +6,12 @@
 "use strict";
 const Cookies = require('js-cookie');
 const tokenCname = 'wktoken';
+const { saveAs } = require('file-saver');
 const display = require('./display');
 const data = require('./data');
-const { $, MAX_KANJI_COUNT } = require('./utils');
+const { $, MAX_KANJI_COUNT, getCurrentDateString } = require('./utils');
 const tokenRegex = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/gi;
+
 
 var dispModeRadios;
 
@@ -106,7 +108,9 @@ function onSliderChange() {
 
 function onSaveImageButtonClick() {
 	console.log('Saving...');
-	display.saveMapAsImage($('img-download'));
+	const data = display.getMapImageData();
+	const filename = 'WaniKani Kanji Map ' + getCurrentDateString();
+	saveAs(data, filename);
 }
 
 function onResize() {

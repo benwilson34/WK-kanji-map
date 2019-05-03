@@ -22529,13 +22529,6 @@ async function wkApiCall(endpoint, token) {
 const { $, MAX_KANJI_COUNT } = require('./utils');
 const Paper = require('paper');
 const Path = Paper.Path;
-// const Canvas2Image = require('canvas2image');
-// console.log(!!Canvas2Image);
-// console.log(require('util').inspect(Canvas2Image));
-// const ReImg = require('reimg').ReImg;
-// console.log(require('util').inspect(ReImg));
-const { saveAs } = require('file-saver');
-
 
 var canvas;
 var displayMode = 'bingo';
@@ -22736,24 +22729,12 @@ function changeAlpha(alpha) {
 	currentDataGroup.style.fillColor = color;
 }
 
-module.exports.saveMapAsImage = (link) => {
-	// console.log(require('util').inspect(ReImg));
-	// var png = ReImg.fromCanvas(canvas).downloadPng('sample.png');
-	// TODO 
+module.exports.getMapImageData = () => {
   let raster = mapGroup.rasterize(250, false);
-  let img = raster.toDataURL();
-  // link.download = 'TRYING.png';
-  // img = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-  // img = img.replace("image/png", "image/octet-stream");
-  // console.log(JSON.stringify(img));
-  // link.href = img;
-  // link.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
-  // link.setAttribute('href', img.replace("image/png", "image/octet-stream"));
-  // link.click();
-  saveAs(img, 'trying.png');
+  return raster.toDataURL();
 }
 
-},{"./utils":9,"file-saver":3,"paper":5}],8:[function(require,module,exports){
+},{"./utils":9,"paper":5}],8:[function(require,module,exports){
 /**
  * This is the main module for the frontend. It mainly manages the other modules and handles the UI.
  * NOTE rename to main.js? Then rename "display.js" to "map.js"?
@@ -22762,10 +22743,12 @@ module.exports.saveMapAsImage = (link) => {
 "use strict";
 const Cookies = require('js-cookie');
 const tokenCname = 'wktoken';
+const { saveAs } = require('file-saver');
 const display = require('./display');
 const data = require('./data');
-const { $, MAX_KANJI_COUNT } = require('./utils');
+const { $, MAX_KANJI_COUNT, getCurrentDateString } = require('./utils');
 const tokenRegex = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/gi;
+
 
 var dispModeRadios;
 
@@ -22862,7 +22845,9 @@ function onSliderChange() {
 
 function onSaveImageButtonClick() {
 	console.log('Saving...');
-	display.saveMapAsImage($('img-download'));
+	const data = display.getMapImageData();
+	const filename = 'WaniKani Kanji Map ' + getCurrentDateString();
+	saveAs(data, filename);
 }
 
 function onResize() {
@@ -22937,11 +22922,16 @@ function switchMenu(displayMenu) {
 	} );
 }
 
-},{"./data":6,"./display":7,"./utils":9,"js-cookie":4}],9:[function(require,module,exports){
+},{"./data":6,"./display":7,"./utils":9,"file-saver":3,"js-cookie":4}],9:[function(require,module,exports){
 module.exports.MAX_KANJI_COUNT = 3002;
 
 module.exports.$ = (id) => {
 	return document.getElementById(id);
+}
+
+module.exports.getCurrentDateString = () => {
+	const today = new Date();
+	return today.getFullYear() + "-" + (parseInt(today.getMonth()) + 1) + "-" + today.getDate();
 }
 
 },{}]},{},[8]);
