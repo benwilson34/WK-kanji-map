@@ -7,8 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "nodemon": "nodemon app.js",
     "resource": "node ./node/resource/convert-sid-kkld",
-    "build": "browserifyinc src\\kanji-map.js -o dist\\bundle.js -v",
-    "buildwatch": "watchify src\\kanji-map.js -o dist\\bundle.js -v"
+    "build": "browserifyinc src/kanji-map.js -o dist/bundle.js -v",
+    "buildwatch": "watchify src/kanji-map.js -o dist/bundle.js -v"
   },
   "author": "",
   "license": "ISC",

@@ -22505,15 +22505,18 @@ return paper;
 }.call(this, typeof self === 'object' ? self : null);
 
 },{"./node/extend.js":2,"./node/self.js":2,"acorn":1}],6:[function(require,module,exports){
+// const API_BASE = 'http://localhost:8081/api';
+const API_BASE = 'http://192.168.1.207:8081/api';
+
 module.exports.getUserKanji = async (token) => {
 	//get list of inds from API
-	const endpoint = 'http://localhost:8081/api/ids';
+	const endpoint = API_BASE + '/ids';
 	return await wkApiCall(endpoint, token);
 }
 
 module.exports.getAllWkKanji = async (token) => {
 	//get list of inds from API
-	const endpoint = 'http://localhost:8081/api/all-ids';
+	const endpoint = API_BASE + '/all-ids';
 	return await wkApiCall(endpoint, token);
 }
 
@@ -22526,213 +22529,212 @@ async function wkApiCall(endpoint, token) {
   return await response.json(); //extract JSON from the http response
 }
 },{}],7:[function(require,module,exports){
-const { $, MAX_KANJI_COUNT } = require('./utils');
-const Paper = require('paper');
+const { $, MAX_KANJI_COUNT } = require("./utils");
+const Paper = require("paper");
 const Path = Paper.Path;
 
 var canvas;
-var displayMode = 'bingo';
+var displayMode = "bingo";
 var alpha = 1;
 var mapGroup, dataGroup, inverseDataGroup, currentDataGroup;
 var isDatasetLoaded = false;
 var zoomFactor = 2;
+var isZoomedIn = false;
 var map;
 var width, height;
 
-
 module.exports.init = (mapArea, canvasIn) => {
-	canvas = canvasIn;
-	canvas.width = width = mapArea.clientWidth;
-	canvas.height = height = mapArea.clientHeight;
+  canvas = canvasIn;
+  canvas.width = width = mapArea.clientWidth;
+  canvas.height = height = mapArea.clientHeight;
 
-	Paper.setup(canvas);
+  Paper.setup(canvas);
 
-	// init map image
-	map = new Paper.Raster('map');
-	map.position = Paper.view.center;
-	map.fitBounds(Paper.view.bounds);
-	mapGroup = new Paper.Group(map);
+  // init map image
+  map = new Paper.Raster("map");
+  map.position = Paper.view.center;
+  map.fitBounds(Paper.view.bounds);
+  mapGroup = new Paper.Group(map);
 
-	// init overlay mouse controls
-	Paper.view.onKeyDown = onKeyDown;
-	Paper.view.onMouseEnter = onMouseEnter;
-	Paper.view.onMouseLeave = onMouseLeave;
-	Paper.view.onMouseMove = onMouseMove;
-}
+  // init overlay mouse controls
+  Paper.view.onKeyDown = onKeyDown;
+  Paper.view.onMouseEnter = onMouseEnter;
+  Paper.view.onMouseLeave = onMouseLeave;
+  Paper.view.onMouseMove = onMouseMove;
+};
 
 module.exports.resizeCanvas = resizeCanvas;
-function resizeCanvas() {
-
-}
+function resizeCanvas() {}
 
 function onKeyDown(event) {
-	if (!isDatasetLoaded) return;
+  if (!isDatasetLoaded) return;
 
-	const zoomInc = .2;
-	if (event.key === 'w') {
-		zoomFactor += zoomInc;
-		mapGroup.scale(1 + zoomInc);
-	}	else if (event.key === 's') {
-		zoomFactor -= zoomInc;
-		mapGroup.scale(1 + (-1 * zoomInc));
-	}
-	// console.log(zoomFactor);
+  const zoomInc = 0.2;
+  if (event.key === "w") {
+    zoomFactor += zoomInc;
+    mapGroup.scale(1 + zoomInc);
+  } else if (event.key === "s") {
+    zoomFactor -= zoomInc;
+    mapGroup.scale(1 + -1 * zoomInc);
+  }
+  // console.log(zoomFactor);
 }
 
 function onMouseEnter(event) {
-	if (!isDatasetLoaded) return;
-	// console.log('\\  Mouse enter!');
-	mapGroup.scale(zoomFactor);
+  if (!isDatasetLoaded || isZoomedIn) return;
+  mapGroup.scale(zoomFactor);
+  isZoomedIn = true;
 }
 
 function onMouseLeave(event) {
-	if (!isDatasetLoaded) return;
-	// console.log('/  Mouse leave!');
-	mapGroup.fitBounds(Paper.view.bounds);
-	mapGroup.position = Paper.view.center;
+  if (!isDatasetLoaded) return;
+  mapGroup.fitBounds(Paper.view.bounds);
+  mapGroup.position = Paper.view.center;
+  isZoomedIn = false;
 }
 
 function onMouseMove(event) {
-	if (!isDatasetLoaded) return;
+  if (!isDatasetLoaded) return;
 
-	// map mouse in corners of viewport to corners of map
-	let viewWidth  = Paper.view.viewSize.width,
-	    viewHeight = Paper.view.viewSize.height;
-	// ratios are 0..1 for relative position in viewport
-	let xRatio = event.point.x / viewWidth;
-	let yRatio = event.point.y / viewHeight;
-	// this brings the virtual corners in to make panning a little more friendly
-	// const compressionPercent = 0.15, // 5% compression on all sides (think 5% padding in viewport)
-	//       compressedAmount = 1 + (compressionPercent * 2);
-	// xRatio = (xRatio * compressedAmount) - compressionPercent;
-	// yRatio = (yRatio * compressedAmount) - compressionPercent;
-	// transform amounts are the maximum translation along either axis
-	let xTrans = mapGroup.bounds.width  - viewWidth;
-	let yTrans = mapGroup.bounds.height - viewHeight;
-	// console.log(`ratio(${xRatio},${yRatio}) trans(${xTrans},${yTrans})`);
-	let x = -1 * xRatio * xTrans;
-	let y = -1 * yRatio * yTrans;
-	// adjust for the pivot being at the center of the mapGroup
-	x += mapGroup.bounds.width  / 2;
-	y += mapGroup.bounds.height / 2;
+  // map mouse in corners of viewport to corners of map
+  let viewWidth = Paper.view.viewSize.width,
+    viewHeight = Paper.view.viewSize.height;
+  // ratios are 0..1 for relative position in viewport
+  let xRatio = event.point.x / viewWidth;
+  let yRatio = event.point.y / viewHeight;
+  // this brings the virtual corners in to make panning a little more friendly
+  // const compressionPercent = 0.15, // 5% compression on all sides (think 5% padding in viewport)
+  //       compressedAmount = 1 + (compressionPercent * 2);
+  // xRatio = (xRatio * compressedAmount) - compressionPercent;
+  // yRatio = (yRatio * compressedAmount) - compressionPercent;
+  // transform amounts are the maximum translation along either axis
+  let xTrans = mapGroup.bounds.width - viewWidth;
+  let yTrans = mapGroup.bounds.height - viewHeight;
+  // console.log(`ratio(${xRatio},${yRatio}) trans(${xTrans},${yTrans})`);
+  let x = -1 * xRatio * xTrans;
+  let y = -1 * yRatio * yTrans;
+  // adjust for the pivot being at the center of the mapGroup
+  x += mapGroup.bounds.width / 2;
+  y += mapGroup.bounds.height / 2;
 
-	mapGroup.position = new Paper.Point(x, y);
+  mapGroup.position = new Paper.Point(x, y);
 }
 
 // no return
-module.exports.setDataset = (dataset) => {
-	// prevent mouse events before the dataset is loaded
-	isDatasetLoaded = false;
+module.exports.setDataset = dataset => {
+  // prevent mouse events before the dataset is loaded
+  isDatasetLoaded = false;
 
-	// filter out any -1 inds (which indicate one of the 8 WK kanji that aren't on the map)
-	dataset = dataset.filter( ind => ind > 0 );
-	dataGroup = drawSquaresFromIndices(dataset, "#F84C2E");
+  // filter out any -1 inds (which indicate one of the 8 WK kanji that aren't on the map)
+  dataset = dataset.filter(ind => ind > 0);
+  dataGroup = drawSquaresFromIndices(dataset, "#F84C2E");
 
-	// if it's either of the two other display modes, we'll invert which squares are drawn
-	var inverseInds = [];
-	for(var i = 1; i <= MAX_KANJI_COUNT; i++) {
-		if (dataset.indexOf(i + "") < 0) { // i is not in the inds list
-			// console.log(i);
-			inverseInds.push(i);
-		}
-	}
-	inverseDataGroup = drawSquaresFromIndices(inverseInds, 'white');
+  // if it's either of the two other display modes, we'll invert which squares are drawn
+  var inverseInds = [];
+  for (var i = 1; i <= MAX_KANJI_COUNT; i++) {
+    if (dataset.indexOf(i + "") < 0) {
+      // i is not in the inds list
+      // console.log(i);
+      inverseInds.push(i);
+    }
+  }
+  inverseDataGroup = drawSquaresFromIndices(inverseInds, "white");
 
-	// set both groups as children of the map obj so that they transform together
-	mapGroup.addChildren( [ dataGroup, inverseDataGroup ] );
+  // set both groups as children of the map obj so that they transform together
+  mapGroup.addChildren([dataGroup, inverseDataGroup]);
 
-	// refresh the display
-	switchDisplayMode(displayMode);
+  // refresh the display
+  switchDisplayMode(displayMode);
 
-	// allow mouse events
-	isDatasetLoaded = true;
-}
+  // allow mouse events
+  isDatasetLoaded = true;
+};
 
 // draw square for each point
 function drawSquaresFromIndices(inds, fillColor) {
-	var group = new Paper.Group();
-	var squares = [];
-	inds.forEach(ind => {
-		squares.push( drawSquare(ind, fillColor) );
-	});
-	console.log('finished drawing ' + squares.length + ' squares.');
-	group.addChildren(squares);
-	return group;
+  var group = new Paper.Group();
+  var squares = [];
+  inds.forEach(ind => {
+    squares.push(drawSquare(ind, fillColor));
+  });
+  console.log("finished drawing " + squares.length + " squares.");
+  group.addChildren(squares);
+  return group;
 }
 
 function indexToCoord(i) {
-	if (i <= 0)  {
-		console.log('Got one of the 8 undefined kanji.');
-		return { x: -1, y: -1 };
-	}
-	if (i === 3002) return { x: 1, y: 50 }; // literally the only one out of place
-	else {
-		i--;
-		return {
-			x: Math.floor((i % 600) / 10),
-			y: ((Math.floor(i / 600) * 10) + (i % 10))
-		}
-	}
+  if (i <= 0) {
+    console.log("Got one of the 8 undefined kanji.");
+    return { x: -1, y: -1 };
+  } else if (i === 3002) return { x: 1, y: 50 };
+  // literally the only one out of place
+  else {
+    i--;
+    return {
+      x: Math.floor((i % 600) / 10),
+      y: Math.floor(i / 600) * 10 + (i % 10)
+    };
+  }
 }
 
 function drawSquare(ind, fillColor) {
-	var square = indexToCoord(ind);
-	// console.log(JSON.stringify(square));
+  var square = indexToCoord(ind);
+  // console.log(JSON.stringify(square));
 
-	const w = width < height ? width : height; // shortest dimension
-	let realx = square.x + 2; // offset
-	let realy = square.y + 3; // offset;
-	realx += Math.floor(square.x / 10);
-	realy += Math.floor(square.y / 10);
-	const squareSide = (w / 67); // width / number of squares across
-	realx *= squareSide;
-	realy *= squareSide;
-	realx = w - realx;
-	// realx = w - realx - .2;
-	realx += mapGroup.bounds.topLeft.x;
-	realy += mapGroup.bounds.topLeft.y;
+  const w = width < height ? width : height; // shortest dimension
+  let realx = square.x + 2; // offset
+  let realy = square.y + 3; // offset;
+  realx += Math.floor(square.x / 10);
+  realy += Math.floor(square.y / 10);
+  const squareSide = w / 67; // width / number of squares across
+  realx *= squareSide;
+  realy *= squareSide;
+  realx = w - realx;
+  // realx = w - realx - .2;
+  realx += mapGroup.bounds.topLeft.x;
+  realy += mapGroup.bounds.topLeft.y;
 
-	var path = new Path();
-	var rect = new Path.Rectangle(realx, realy, squareSide, squareSide);
-	rect.fillColor = fillColor;
-	return rect;
+  var path = new Path();
+  var rect = new Path.Rectangle(realx, realy, squareSide, squareSide);
+  rect.fillColor = fillColor;
+  return rect;
 }
 
 module.exports.switchDisplayMode = switchDisplayMode;
-function switchDisplayMode (displayMode) {
-	// filter based on displaymode	
-	if (displayMode === 'none') {
-		dataGroup.visible = false;
-		inverseDataGroup.visible = false;
-	} else if (displayMode === 'bingo') {
-		dataGroup.visible = true;
-		inverseDataGroup.visible = false;
-		currentDataGroup = dataGroup;
-	} else {
-		inverseDataGroup.visible = true;
-		dataGroup.visible = false;
-		currentDataGroup = inverseDataGroup;
+function switchDisplayMode(displayMode) {
+  // filter based on displaymode
+  if (displayMode === "none") {
+    dataGroup.visible = false;
+    inverseDataGroup.visible = false;
+  } else if (displayMode === "bingo") {
+    dataGroup.visible = true;
+    inverseDataGroup.visible = false;
+    currentDataGroup = dataGroup;
+  } else {
+    inverseDataGroup.visible = true;
+    dataGroup.visible = false;
+    currentDataGroup = inverseDataGroup;
 
-		inverseDataGroup.style.fillColor = 
-			displayMode === 'whiteout' ? 'white' : 'black';
-	}
+    inverseDataGroup.style.fillColor =
+      displayMode === "whiteout" ? "white" : "black";
+  }
 
-	changeAlpha(this.alpha);
-	this.displayMode = displayMode;
+  changeAlpha(this.alpha);
+  this.displayMode = displayMode;
 }
 
 module.exports.changeAlpha = changeAlpha;
 function changeAlpha(alpha) {
-	this.alpha = alpha;
-	let color = currentDataGroup.style.fillColor;
-	color.alpha = alpha;
-	currentDataGroup.style.fillColor = color;
+  this.alpha = alpha;
+  let color = currentDataGroup.style.fillColor;
+  color.alpha = alpha;
+  currentDataGroup.style.fillColor = color;
 }
 
 module.exports.getMapImageData = () => {
   let raster = mapGroup.rasterize(250, false);
   return raster.toDataURL();
-}
+};
 
 },{"./utils":9,"paper":5}],8:[function(require,module,exports){
 /**
