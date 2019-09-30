@@ -8,7 +8,8 @@
     "nodemon": "nodemon app.js",
     "resource": "node ./node/resource/convert-sid-kkld",
     "build": "browserify src/kanji-map.js -o dist/bundle.js -v",
-    "buildwatch": "watchify src/kanji-map.js -o dist/bundle.js -v"
+    "buildwatch": "watchify src/kanji-map.js -o dist/bundle.js -v",
+    "start": "node index.js"
   },
   "author": "",
   "license": "ISC",
