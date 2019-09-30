@@ -2,7 +2,8 @@ const API_URL_BASE = process.env.API_URL_BASE;
 
 module.exports.getUserKanji = async (token) => {
 	//get list of inds from API
-	const endpoint = API_URL_BASE + '/ids';
+	// const endpoint = API_URL_BASE + '/ids';
+	const endpoint = 'api/ids';
 	return await wkApiCall(endpoint, token);
 }
 
