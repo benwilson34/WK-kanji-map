@@ -4,7 +4,8 @@
  * @module index
  */
 const express = require('express');
-const port = process.env.PORT || 8081;
+require('dotenv').config();
+const port = process.env.PORT;
 
 
 // MAIN ============================================================================================

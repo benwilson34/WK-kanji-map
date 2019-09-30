@@ -1,15 +1,14 @@
-// const API_BASE = 'http://localhost:8081/api';
-const API_BASE = 'http://192.168.1.207:8081/api';
+const API_URL_BASE = process.env.API_URL_BASE;
 
 module.exports.getUserKanji = async (token) => {
 	//get list of inds from API
-	const endpoint = API_BASE + '/ids';
+	const endpoint = API_URL_BASE + '/ids';
 	return await wkApiCall(endpoint, token);
 }
 
 module.exports.getAllWkKanji = async (token) => {
 	//get list of inds from API
-	const endpoint = API_BASE + '/all-ids';
+	const endpoint = API_URL_BASE + '/all-ids';
 	return await wkApiCall(endpoint, token);
 }
 
