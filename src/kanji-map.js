@@ -148,7 +148,7 @@ function showUserKanjiMap(dataset) {
 	const statStr = `You know ${userCount} out of 3002, which is ${getPrettyPercent(userCount)}% ` + 
 		`of the kanji on the map.`;
 	$('info-user').innerHTML = statStr;
-	const extraKanjiStr = `You also know ${dataset.filter(e => !e).length} of the 8 kanji that ` + 
+	const extraKanjiStr = `You also know ${dataset.filter(e => !e).length} of the 11 kanji that ` + 
 		`are not on the map.`;
 	$('info-extra-kanji').innerHTML = extraKanjiStr;
 }
