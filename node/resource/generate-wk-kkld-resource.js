@@ -17,7 +17,12 @@ const jsonFilepath = __dirname + '/wk-kkld.json';
 // MAIN ============================================================================================
 
 // start off the retrieval, it'll generate the object from here and save to file
-getPageOfKanji(kanjiUrl);
+const token = process.env.WK_TOKEN;
+if (!token) {
+  console.log("Whoops! You need to supply the WK_TOKEN env var. Pass it in with the command.");
+  return;
+}
+getPageOfKanji(kanjiUrl, token);
 
 // =================================================================================================
 
@@ -27,13 +32,13 @@ getPageOfKanji(kanjiUrl);
  * there will be three pages total (so three API calls). When all the kanji have been retrieved, 
  * it calls @see compositeRes. 
  * @param  {string} url     - the WK API URL to call.
- * @param  {object} wkKanji - the object containing the WJ kanji retrieved so far. First call is null.
+ * @param  {object} wkKanji - the object containing the WK kanji retrieved so far. First call is null.
  */
-function getPageOfKanji(url, wkKanji = null) {
+function getPageOfKanji(url, token, wkKanji = null) {
   if (!wkKanji) wkKanji = {};
 
   request.get(url, {
-    'auth': { 'bearer': '06a889e3-c519-47d2-9bcf-ddb82c96040e' }
+    'auth': { 'bearer': token }
   },
   (error, response, body) => {
     if (error) console.log(error);
@@ -52,7 +57,7 @@ function getPageOfKanji(url, wkKanji = null) {
     // If not, that's all the kanji, move on to creating the object/file.
     console.log(bodyObj.pages.next_url);
     if (!!bodyObj.pages.next_url)
-      getPageOfKanji(bodyObj.pages.next_url, wkKanji);
+      getPageOfKanji(bodyObj.pages.next_url, token, wkKanji);
     else
       associateKanjiToIndex(wkKanji);
   });
@@ -82,7 +87,7 @@ function associateKanjiToIndex(wkKanji) {
     console.log(`Could not associate:` + noAssoc.toString());
 
     // save the object to file
-    fs.writeFileSync(jsonFilepath, JSON.stringify(compObj, null, '  '));
+    fs.writeFileSync(jsonFilepath, JSON.stringify(compObj, null, '  ') + '\n');
     console.log('Done writing resource object to ' + jsonFilepath);
   })
   .catch( err => console.error(err) );
