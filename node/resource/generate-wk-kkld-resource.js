@@ -1,5 +1,5 @@
 /**
- * This modules associates the 2019 kanji that are part of WK with a KKLD index. This generates a 
+ * This modules associates the 2037 kanji that are part of WK with a KKLD index. This generates a 
  * resource file, 'wk-kkld.json', which the API handler reads from. 
  * NOTE This is run with 'npm run resource', but only needs to be run if/when WK adds or removes 
  * kanji from their system. 
@@ -32,6 +32,7 @@ getPageOfKanji(kanjiUrl, token);
  * there will be three pages total (so three API calls). When all the kanji have been retrieved, 
  * it calls @see compositeRes. 
  * @param  {string} url     - the WK API URL to call.
+ * @param  {string} token   - the WK API v2 token.
  * @param  {object} wkKanji - the object containing the WK kanji retrieved so far. First call is null.
  */
 function getPageOfKanji(url, token, wkKanji = null) {
@@ -70,24 +71,24 @@ function getPageOfKanji(url, token, wkKanji = null) {
  *                   { '倹': 2465, '狐': 2466, ... }
  */
 function associateKanjiToIndex(wkKanji) {
-  let compObj = {};
-
   getKKLDdict().then( KKLDdict => {
-    let noAssoc = [];
+    let assocWkKanjiIds = {};
+    let unassocWkKanjiIds = [];
 
     // structure will resemble: { "id440": "2850", "id441": "1688", "id442": "2858", ... }
     for (var k in wkKanji) {
+      let wkid = "id" + wkKanji[k];
       if (!KKLDdict[k]) {
-        noAssoc.push(k);
+        unassocWkKanjiIds.push(wkid);
         continue;
       }
-      let wkid = wkKanji[k];
-      compObj["id" + wkid] = KKLDdict[k];
+      assocWkKanjiIds[wkid] = KKLDdict[k];
     }
-    console.log(`Could not associate:` + noAssoc.toString());
+    console.log(`Could not associate wkIds: ` + unassocWkKanjiIds.toString());
 
     // save the object to file
-    fs.writeFileSync(jsonFilepath, JSON.stringify(compObj, null, '  ') + '\n');
+    let resourceObj = { assocWkKanjiIds, unassocWkKanjiIds };
+    fs.writeFileSync(jsonFilepath, JSON.stringify(resourceObj, null, '  ') + '\n');
     console.log('Done writing resource object to ' + jsonFilepath);
   })
   .catch( err => console.error(err) );

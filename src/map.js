@@ -90,18 +90,18 @@ function onMouseMove(event) {
 }
 
 // no return
-module.exports.setDataset = dataset => {
+module.exports.setDataset = assocKanjiIdxs => {
   // prevent mouse events before the dataset is loaded
   isDatasetLoaded = false;
 
-  // filter out any -1 inds (which indicate one of the 8 WK kanji that aren't on the map)
-  dataset = dataset.filter(ind => ind > 0);
-  dataGroup = drawSquaresFromIndices(dataset, "#F84C2E");
+  // filter out any -1 inds (which indicate one of the WK kanji that aren't on the map)
+  // dataset = dataset.filter(ind => ind > 0);
+  dataGroup = drawSquaresFromIndices(assocKanjiIdxs, "#F84C2E");
 
   // if it's either of the two other display modes, we'll invert which squares are drawn
   var inverseInds = [];
   for (var i = 1; i <= MAX_KANJI_COUNT; i++) {
-    if (dataset.indexOf(i + "") < 0) {
+    if (assocKanjiIdxs.indexOf(i + "") < 0) {
       // i is not in the inds list
       // console.log(i);
       inverseInds.push(i);
@@ -133,10 +133,11 @@ function drawSquaresFromIndices(inds, fillColor) {
 
 function indexToCoord(i) {
   if (i <= 0) {
-    console.log("Got one of the 8 undefined kanji.");
+    console.log("Got one of the unassociated WK kanji.");
     return { x: -1, y: -1 };
-  } else if (i === 3002) return { x: 1, y: 50 };
-  // literally the only one out of place
+  } else if (i === 3002) {
+    return { x: 1, y: 50 }; // literally the only one out of place
+  }
   else {
     i--;
     return {

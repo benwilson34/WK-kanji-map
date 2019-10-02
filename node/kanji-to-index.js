@@ -5,7 +5,7 @@
 const fs = require('fs');
 const request = require('request');
 const filepath = __dirname + '/resource/wk-kkld.json';
-const wkidToIndex = JSON.parse(fs.readFileSync(filepath)); // unsafe but w/e
+const kanjiResource = JSON.parse(fs.readFileSync(filepath)); // unsafe but w/e
 
 
 /**
@@ -32,10 +32,10 @@ module.exports.getUserIndices = (req, res) => {
  * @param  {string} token - a valid WaniKani API v2 token for the target user.
  * @param  {string} url   - the url of the page of kanji to retrieve.
  * @param  {object} res   - the Express HTTP response.
- *                        Sends the array of user-learned indices.
+ *                        Sends the obj with user-learned indices.
  */
-function getPageOfKanji(token, url, res, ids = null) {
-  if (!ids) ids = [];
+function getPageOfKanji(token, url, res, userKanjiObj = null) {
+  if (!userKanjiObj) userKanjiObj = { assocWkKanjiIdxs: [], unassocWkKanjiIds: [] };
   request.get(url, {
     'auth': { 'bearer': token }
   },
@@ -53,17 +53,21 @@ function getPageOfKanji(token, url, res, ids = null) {
     // add WK kanji to obj
     body.data.forEach(el => {
       let wkid = "id" + el.data.subject_id;
-			ids.push( wkidToIndex[wkid] );
+      if (!!kanjiResource.assocWkKanjiIds[wkid])
+        userKanjiObj.assocWkKanjiIdxs.push( kanjiResource.assocWkKanjiIds[wkid] );
+      else if (kanjiResource.unassocWkKanjiIds.includes(wkid))
+        userKanjiObj.unassocWkKanjiIds.push( wkid );
+      // TODO else, the kanji is not in the resource file...time to re-gen the resource!
     });
 
     // if there's another page, recursively call
-    // if not, send the array
+    // if not, send the obj
     if (!!body.pages.next_url) {
       console.log(`Next url: ${body.pages.next_url}`);
-      getPageOfKanji(token, body.pages.next_url, res, ids);
+      getPageOfKanji(token, body.pages.next_url, res, userKanjiObj);
     } else {
-      console.log(`Done, sending ${ids.length} ids.\n`);
-    	res.json(ids);
+      console.log(`Done, sending ${userKanjiObj.assocWkKanjiIdxs.length + userKanjiObj.unassocWkKanjiIds.length} ids.\n`);
+    	res.json(userKanjiObj);
     }
   });
 }
@@ -75,8 +79,9 @@ function getPageOfKanji(token, url, res, ids = null) {
  *                      Sends an array of all the indices.
  */
 module.exports.getAllIndices = (req, res) => {
+  const assocWkKanjiIds = kanjiResource.assocWkKanjiIds;
 	let idxs = [];
-	for (id in wkidToIndex)
-		idxs.push(wkidToIndex[id]);
-	res.json(idxs);
+	for (id in assocWkKanjiIds)
+		idxs.push(assocWkKanjiIds[id]);
+	res.json({ assocWkKanjiIdxs: idxs, unassocWkKanjiIds: kanjiResource.unassocWkKanjiIds });
 }

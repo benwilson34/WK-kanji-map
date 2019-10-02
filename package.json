@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "genresource": "node ./node/resource/generate-wk-kkld-resource",
-    "build": "browserify src/kanji-map.js -o dist/bundle.js -v",
-    "buildwatch": "watchify src/kanji-map.js -o dist/bundle.js -v",
+    "build": "browserify src/main.js -o dist/bundle.js -v",
+    "buildwatch": "watchify src/main.js -o dist/bundle.js -v",
     "devstart": "NODE_ENV=dev nodemon app.js",
     "start": "node index.js"
   },

@@ -10,6 +10,7 @@ module.exports.getUserKanji = async (token) => {
 module.exports.getAllWkKanji = async (token) => {
 	//get list of inds from API
 	const endpoint = 'api/all-ids';
+	console.log(endpoint);
 	return await wkApiCall(endpoint, token);
 }
 

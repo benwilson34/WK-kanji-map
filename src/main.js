@@ -1,13 +1,12 @@
 /**
  * This is the main module for the frontend. It mainly manages the other modules and handles the UI.
- * NOTE rename to main.js? Then rename "display.js" to "map.js"?
- * @module  src/kanji-map
+ * @module  src/main
  */
 "use strict";
 const Cookies = require('js-cookie');
-const tokenCname = 'wktoken';
+const tokenCookieKey = 'wktoken';
 const { saveAs } = require('file-saver');
-const display = require('./display');
+const map = require('./map');
 const data = require('./data');
 const { $, MAX_KANJI_COUNT, getCurrentDateString } = require('./utils');
 const tokenRegex = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/gi;
@@ -24,10 +23,10 @@ window.onload = () => {
 	setUpEventListeners();
 
 	// init the display module
-	display.init($('map-area'), $('canvas'));
+	map.init($('map-area'), $('canvas'));
 
 	// check for saved token
-	const token = Cookies.get(tokenCname);
+	const token = Cookies.get(tokenCookieKey);
 	if (!!token) {
 		switchMenu('cookie-loading-menu');
 		handleUserToken(token);
@@ -71,7 +70,7 @@ function onSubmitButtonClick() {
 		return displayResult('Token is not the right format. Did you copy the v1 token by accident?', true);
 	
 	const rememberToken = $('remember-token').checked;
-	if (rememberToken) Cookies.set(tokenCname, token);
+	if (rememberToken) Cookies.set(tokenCookieKey, token);
 
 	// get indices of user kanji from API
 	handleUserToken(token);
@@ -83,7 +82,7 @@ function onSubmitButtonClick() {
  */
 function onClearTokenClick() {
 	console.log('clearing token...');
-	Cookies.remove(tokenCname);
+	Cookies.remove(tokenCookieKey);
 	location.reload(); // refresh page
 }
 
@@ -94,7 +93,7 @@ function onDispModeChange() {
 	dispModeRadios.forEach( radio => {
 		if (radio.checked) {
 			console.log(radio.value + ' was clicked');
-			display.switchDisplayMode(radio.value);
+			map.switchDisplayMode(radio.value);
 		}
 	} );
 }
@@ -103,12 +102,12 @@ function onDispModeChange() {
  * Handler for the transparency slider. Update the alpha on drag.
  */
 function onSliderChange() {
-  display.changeAlpha( (100 - this.value) / 100 );
+  map.changeAlpha( (100 - this.value) / 100 );
 }
 
 function onSaveImageButtonClick() {
 	console.log('Saving...');
-	const data = display.getMapImageData();
+	const data = map.getMapImageData();
 	const filename = 'WaniKani Kanji Map ' + getCurrentDateString();
 	saveAs(data, filename);
 }
@@ -128,27 +127,27 @@ async function handleUserToken(token) {
 	const json = await data.getUserKanji(token);
 	if (!!json.error)
 		return displayResult('That token didn\'t work...', true);
-  else
-		showUserKanjiMap(json);
+	else
+		showUserKanjiMap(json.assocWkKanjiIdxs, json.unassocWkKanjiIds);
 }
 
 /**
  * Display user kanji on map and switch interface menu to map controls.
- * @param  {number[]} dataset - indices of user kanji.
+ * @param  {number[], number[]} dataset - assoc indices of user kanji; unassoc learned wk kanji ids.
  */
-function showUserKanjiMap(dataset) {
+function showUserKanjiMap(assocKanjiIdxs, unassocIds) {
 	// switch virtual page
 	switchMenu('map-menu');
 
 	// show actual overlay (bingo mode by default)
-	display.setDataset(dataset);
+	map.setDataset(assocKanjiIdxs);
 
 	// set info text 
-	const userCount = dataset.length;
+	const userCount = assocKanjiIdxs.length;
 	const statStr = `You know ${userCount} out of 3002, which is ${getPrettyPercent(userCount)}% ` + 
 		`of the kanji on the map.`;
 	$('info-user').innerHTML = statStr;
-	const extraKanjiStr = `You also know ${dataset.filter(e => !e).length} of the 11 kanji that ` + 
+	const extraKanjiStr = `You also know ${unassocIds.length} of the 11 kanji that ` + 
 		`are not on the map.`;
 	$('info-extra-kanji').innerHTML = extraKanjiStr;
 }
